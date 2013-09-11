@@ -1,4 +1,4 @@
-## D Extanded Set GL ##
+## D Extanded Set GL
 
 some OpenGL essential wraps:
 * VAO
@@ -6,4 +6,4 @@ some OpenGL essential wraps:
 * shader
 * texture
 
-### use [doc](https://github.com/dexset/desgl/tree/master/doc) for more information ####
+### use [doc](https://github.com/dexset/desgl/tree/master/doc) for more information
