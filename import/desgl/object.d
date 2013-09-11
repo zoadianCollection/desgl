@@ -24,20 +24,29 @@ protected:
     struct buffer
     {
     private:
-        uint id;
+        uint id; // OpenGL VBO ID
         GLenum type;
         uint[] attribs;
 
+        void addThis( string name )
+        {
+            if( name in outher.vbo )
+                throw new GLObjException( "name '" ~ name "' is exist" );
+
+            outher.vbo[name] = this;
+        }
+
     public:
 
-        this( GLenum t )
+        this( string name, GLenum t )
         {
             outher.bind();
+            addThis( name );
             type = t;
             glGenBuffers( 1, &id );
         }
 
-        this(E)( in E[] data, GLenum tp=GL_ARRAY_BUFFER,
+        this(E)( string name, in E[] data, GLenum tp=GL_ARRAY_BUFFER,
                               GLenum mem=GL_DYNAMIC_DRAW )
         {
             outher.bind();
@@ -92,9 +101,9 @@ protected:
             if( outher.shader is null ) 
                 throw new GLObjException( "shader is null" );
 
-            int atLoc = shader.getAttribLocation( attrname );
+            int atLoc = outher.shader.getAttribLocation( attrname );
             if( atLoc < 0 ) 
-                throw new GLObjException( "bad attribute name" );
+                throw new GLObjException( "bad attribute name '" ~ attrname ~ "'" );
 
             outher.bind();
 
