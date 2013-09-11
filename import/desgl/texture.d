@@ -6,6 +6,16 @@ import desmath.types.vector;
 
 class TextureException: Exception { this( string msg ){ super( msg ); } }
 
+private @property string accessVecFields(T,string name)()
+    if( isVector!T )
+{
+    import std.string : format;
+    string ret;
+    foreach( i; 0 .. T.length )
+        ret ~= format( "%s[%d],", name, i );
+    return ret[0 .. $-1];
+}
+
 class GLTexture(ubyte DIM)
     if( DIM == 1 || DIM == 2 || DIM == 3 )
 {
@@ -27,10 +37,11 @@ protected:
 
 public:
 
-    mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM );
+    mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
     alias vec!(DIM,int,fullAccessString[0 .. DIM]) texsize; 
 
-    this( texsize Size )
+    this(A)( A Size )
+        if( isCompVector!(DIM,int,A) )
     {
         glActiveTexture( GL_TEXTURE0 );
         glGenTextures( 1, &texID );
@@ -41,7 +52,7 @@ public:
         parameteri( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         parameteri( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
-        sz = Size;
+        sz = texsize( Size );
     }
 
     /+ TODO
@@ -64,7 +75,7 @@ public:
         sz = nsz;
         bind();
         mixin( format( "glTexImage%1dD( type, 0, texfmt, %s, 0, datafmt, datatype, cast(void*)data.ptr );",
-                    DIM, accessVecFields( sz ) ) );
+                    DIM, accessVecFields!(T,"sz") ) );
     }
 
     ~this()

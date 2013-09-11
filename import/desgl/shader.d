@@ -1,27 +1,24 @@
-module gesgl.shader;
+module desgl.shader;
 
-import gesmath.types.vector,
-       gesmath.types.matrix;
+import desmath.types.vector,
+       desmath.types.matrix;
 
 import std.conv : to;
 import std.string : format;
 
 import derelict.opengl3.gl3;
 
-private pure string castArgsString(S,string data,T...)()
+private string castArgsString(S,string data,T...)()
 {
     string ret = "";
     foreach( i, type; T )
-    {
-        if( is( T == S ) ) ret ~= format( "%s[%d]", data, i );
-        else ret ~= format( "cast(%s)%s[%d]", S.stringof, data, i );
-        ret ~= ",";
-    }
+        ret ~= format( "cast(%s)%s[%d],", 
+                S.stringof, data, i );
 
     return ret[0 .. $-1];
 }
 
-private pure string glPostfix(S)()
+pure string glPostfix(S)()
 {
          static if( is( S == float ) ) return "f";
     else static if( is( S == int ) )   return "i";
@@ -29,11 +26,22 @@ private pure string glPostfix(S)()
     else return "";
 }
 
-private pure bool checkUnifrom(S,T...)()
+unittest
 {
-    if( glPostfix!S == "" ) return false;
-    if( T.length < 1 || T.length > 4 ) return false;
-    foreach( t; T ) if( !is( T : S ) ) return false;
+    assert( glPostfix!float == "f"  );
+    assert( glPostfix!int   == "i"  );
+    assert( glPostfix!uint  == "ui" );
+    assert( glPostfix!double == ""  );
+}
+
+pure bool checkUniform(S,T...)()
+{
+    if( glPostfix!S == "" || 
+            T.length == 0 || 
+            T.length >  4 ) return false;
+    foreach( t; T ) 
+        if( !is( t : S ) ) 
+            return false;
     return true;
 }
 
@@ -42,8 +50,10 @@ unittest
     string getFloats(string data,T...)( in T vals )
     { return castArgsString!(float,data,vals)(); }
 
-    assert( getFloats!"v"( 1.0f, 2u, -3 ) == "v[0],cast(float)v[1],cast(float)v[2]" );
+    assert( getFloats!"v"( 1.0f, 2u, -3 ) == "cast(float)v[0],cast(float)v[1],cast(float)v[2]" );
 }
+
+debug import std.stdio;
 
 struct ShaderSource { string vert, frag, geom; }
 
@@ -63,7 +73,9 @@ private:
     static GLuint makeShader( GLenum type, string src )
     {
         GLuint shader = glCreateShader( type );
-        glShaderSource( shader, 1, &(src.ptr), null );
+        debug(3) stderr.writeln( "create shader ", shader, " with type ", type ); 
+        auto srcptr = src.ptr;
+        glShaderSource( shader, 1, &(srcptr), null );
         glCompileShader( shader );
 
         int res;
@@ -145,7 +157,7 @@ private:
 
 public:
     this( in ShaderSource src ) { construct( src ); }
-    ~this() { destroy(); }
+    ~this() { destruct(); }
 
     final void use()
     {
@@ -161,7 +173,7 @@ public:
     { return glGetUniformLocation( program, name.ptr ); }
 
     void setUniform(S,T...)( int loc, T vals ) 
-        if( checkUnifrom!(S,T) )
+        if( checkUniform!(S,T) )
     {
         checkLocation( loc ); use();
         mixin( "glUniform" ~ to!string(T.length) ~ glPostfix!S ~ "( loc, " ~ 
@@ -169,7 +181,7 @@ public:
     }
 
     void setUniform(S,T...)( string name, T vals ) 
-        if( checkUnifrom!(S,T) )
+        if( checkUniform!(S,T) )
     { setUniform!S( getUniformLocation( name ), vals ); }
 
     void setUniformArr(size_t sz,T)( int loc, in T[] vals )
@@ -189,10 +201,10 @@ public:
     void setUniformVec(size_t N,T,string AS)( int loc, vec!(N,T,AS)[] vals... )
         if( N > 0 && N < 5 && (glPostfix!T).length != 0 )
     {
-        checkLoc( loc ); 
+        checkLocation( loc ); 
         auto cnt = vals.length;
         use();
-        mixin( "glUniform" ~ to!string(sz) ~ glPostfix!T ~ 
+        mixin( "glUniform" ~ to!string(N) ~ glPostfix!T ~ 
                 "v( loc, cast(int)cnt, cast(" ~ T.stringof ~ "*)vals.ptr );" );
     }
 
@@ -203,7 +215,7 @@ public:
     void setUniformMat(size_t h, size_t w)( int loc, in mat!(h,w,float)[] mtr... )
         if( h <= 4 && w <= 4 )
     {
-        checkLoc( loc );
+        checkLocation( loc );
         use();
         static if( w == h )
             mixin( "glUniformMatrix" ~ to!string(w) ~ 

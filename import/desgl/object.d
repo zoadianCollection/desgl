@@ -15,13 +15,13 @@ private:
     static void set_to_use( uint nvao )
     {
         glBindVertexArray( nvao );
-        _inUse = nvao;
+        currentUseID = nvao;
     }
     uint vaoID = 0; // OpenGL VAO ID
 
 protected:
 
-    struct buffer
+    final class buffer
     {
     private:
         uint id; // OpenGL VBO ID
@@ -30,45 +30,39 @@ protected:
 
         void addThis( string name )
         {
-            if( name in outher.vbo )
-                throw new GLObjException( "name '" ~ name "' is exist" );
+            if( name in this.outer.vbo )
+                throw new GLObjException( "name '" ~ name ~ "' is exist" );
 
-            outher.vbo[name] = this;
+            this.outer.vbo[name] = this;
         }
 
     public:
 
-        this( string name, GLenum t )
-        {
-            outher.bind();
-            addThis( name );
-            type = t;
-            glGenBuffers( 1, &id );
-        }
-
-        this(E)( string name, in E[] data, GLenum tp=GL_ARRAY_BUFFER,
+        this(E)( string name, GLenum tp=GL_ARRAY_BUFFER, in E[] data_arr=null,
                               GLenum mem=GL_DYNAMIC_DRAW )
         {
-            outher.bind();
-            this( tp );
-            data( data, mem );
+            this.outer.bind();
+            addThis( name );
+            type = tp;
+            glGenBuffers( 1, &id );
+            if( data_arr ) data( data_arr, mem );
         }
 
         void bind()
         {
-            outher.bind();
+            this.outer.bind();
             glBindBuffer( type, id );
         }
 
         void unbind()
         {
-            outher.bind();
+            this.outer.bind();
             glBindBuffer( type, 0 );
         }
 
         void data(E)( in E[] data, GLenum mem=GL_DYNAMIC_DRAW )
         {
-            outher.bind();
+            this.outer.bind();
             auto size = E.sizeof * data.length;
             if( !size ) throw new GLObjException( "buffer data size is 0" );
 
@@ -98,14 +92,14 @@ protected:
         void setAttribPointer( string attrname, uint size, 
                 GLenum type, size_t stride, size_t offset, bool norm=false )
         {
-            if( outher.shader is null ) 
+            if( this.outer.shader is null ) 
                 throw new GLObjException( "shader is null" );
 
-            int atLoc = outher.shader.getAttribLocation( attrname );
+            int atLoc = this.outer.shader.getAttribLocation( attrname );
             if( atLoc < 0 ) 
                 throw new GLObjException( "bad attribute name '" ~ attrname ~ "'" );
 
-            outher.bind();
+            this.outer.bind();
 
             glBindBuffer( type, id );
             scope(exit) 
@@ -166,8 +160,8 @@ public:
 
         glGenVertexArrays( 1, &vaoID ); 
 
-        draw.addPair( (args){ preDraw(); },
-                      (args){ postDraw(); } )
+        draw.addPair( (Args args){ preDraw(); },
+                      (Args args){ postDraw(); } );
     }
 
     ~this()
