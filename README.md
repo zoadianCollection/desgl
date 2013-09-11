@@ -6,4 +6,4 @@ some OpenGL essential wraps:
 * shader
 * texture
 
-### use doc/ for more information ####
+### use [doc](https://github.com/dexset/desgl/doc) for more information ####
