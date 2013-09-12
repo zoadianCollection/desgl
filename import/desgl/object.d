@@ -11,12 +11,15 @@ debug mixin( LoggerPrivateMixin( "globj", __MODULE__ ) );
 
 class GLObjException : Exception { this( string msg ){ super( msg ); } }
 
-void checkGL( int ln=__LINE__ )
+debug
 {
-    import std.string : format;
-    auto err = glGetError();
-    if( err != GL_NO_ERROR )
-        log.trace( format( " ## GL ERROR ## at line: #%s: 0x%04x", ln, err ) );
+    void checkGL( int ln=__LINE__ )
+    {
+        import std.string : format;
+        auto err = glGetError();
+        if( err != GL_NO_ERROR )
+            log.trace( format( " ## GL ERROR ## at line: #%s: 0x%04x", ln, err ) );
+    }
 }
 
 class GLObj(Args...)
