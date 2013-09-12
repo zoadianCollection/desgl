@@ -1,7 +1,7 @@
 /++
 прямоугольник, удобен для наложения текстур
 +/
-module desgl.draw.rshape;
+module desgl.draw.rectshape;
 
 import derelict.opengl3.gl3;
 
@@ -70,6 +70,24 @@ public:
         static if( is( E == ubyte ) ) enum type = GL_UNSIGNED_BYTE;
         tex.image( sz, GL_RED, GL_RED, type, data ); 
         use_tex = 1;
+    }
+
+    void fillColorTexture(T,size_t N,E,string as)( in T sz, vec!(N,E,as)[] data )
+        if( isCompVector!(2,int,T) && ( N==3 || N==4 ) && 
+                ( is( E == ubyte ) || is( E == float ) ) )
+    {
+        static if( is( E == ubyte ) ) 
+            enum type = GL_UNSIGNED_BYTE;
+        else static if( is( E == float ) ) 
+            enum type = GL_FLOAT;
+
+        static if( N == 3 ) 
+            enum fmt = GL_RGB;
+        else static if( N == 4 )
+            enum fmt = GL_RGBA;
+
+        tex.image( sz, fmt, fmt, type, data ); 
+        use_tex = 2;
     }
 
     void reshape( in irect r ) { vbo["pos"].data( r.points!float ); }
