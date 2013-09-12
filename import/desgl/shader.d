@@ -8,7 +8,7 @@ import std.string : format;
 
 import derelict.opengl3.gl3;
 
-private string castArgsString(S,string data,T...)()
+@property private string castArgsString(S,string data,T...)()
 {
     string ret = "";
     foreach( i, type; T )
@@ -18,7 +18,7 @@ private string castArgsString(S,string data,T...)()
     return ret[0 .. $-1];
 }
 
-pure string glPostfix(S)()
+@property pure string glPostfix(S)()
 {
          static if( is( S == float ) ) return "f";
     else static if( is( S == int ) )   return "i";
@@ -34,7 +34,7 @@ unittest
     assert( glPostfix!double == ""  );
 }
 
-pure bool checkUniform(S,T...)()
+@property pure bool checkUniform(S,T...)()
 {
     if( glPostfix!S == "" || 
             T.length == 0 || 
