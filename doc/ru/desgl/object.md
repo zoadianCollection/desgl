@@ -71,7 +71,6 @@
 
 * выставление атрибутов 
 
-    
     ```d
     void setAttribPointer( string attrname, uint size, GLenum attype, bool norm );
     void setAttribPointer( string attrname, uint size, GLenum attype, size_t stride, size_t offset, bool norm );
@@ -100,7 +99,6 @@
 * `ShaderProgram shader` - шейдер, используемый при рисовании
 
 * привязка и отвязка VAO
-
     ```d
     void bind();
     void unbind();
