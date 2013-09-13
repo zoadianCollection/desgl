@@ -22,7 +22,6 @@
 
     ```d
     this(E)( string name, GLenum tp, in E[] data_arr, GLenum mem );
-
     ```
 
     `name` - имя буфера, используется для заполнения ассоциативного массива в `GLObj`
