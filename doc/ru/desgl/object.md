@@ -117,7 +117,7 @@
 
 ### Пример использования ###
 
-**см. файл desgl/draw/rectshape.d**
+**см. файл [reshape.d](https://github.com/dexset/desgl/blob/master/import/desgl/draw/rectshape.d)**
 
 
 
