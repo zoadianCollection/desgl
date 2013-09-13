@@ -121,8 +121,8 @@ protected:
         }
 
         void setAttribPointer( string attrname, uint size,
-                GLenum type, bool norm=false )
-        { setAttribPointer( attrname, size, type, 0, 0, norm ); }
+                GLenum attype, bool norm=false )
+        { setAttribPointer( attrname, size, attype, 0, 0, norm ); }
 
         void setAttribPointer( string attrname, uint size, 
                 GLenum attype, size_t stride, size_t offset, bool norm=false )
