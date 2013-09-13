@@ -12,8 +12,7 @@
 
 ##### `final class buffer`
 
-Вложенный в `GLObj` класс, 
-обёртка для vertex buffer object
+Вложенный в `GLObj` класс, является обёртка для vertex buffer object
 
 ###### методы
 
