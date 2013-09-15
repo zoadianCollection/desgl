@@ -112,6 +112,7 @@ protected:
 
         void disable()
         {
+            this.outer.bind();
             bind();
             foreach( attr; attribs )
                 glDisableVertexAttribArray( attr );
@@ -134,7 +135,6 @@ protected:
             if( atLoc < 0 ) 
                 throw new GLObjException( "bad attribute name '" ~ attrname ~ "'" );
 
-            this.outer.bind();
 
             glBindBuffer( type, id );
             scope(exit) 
@@ -148,6 +148,7 @@ protected:
             if( !find )
                 attribs ~= atLoc;
 
+            this.outer.bind();
             glEnableVertexAttribArray( atLoc );
             glVertexAttribPointer( atLoc, cast(int)size, attype, norm, 
                     cast(int)stride, cast(void*)offset );
@@ -172,27 +173,6 @@ protected:
 
     ShaderProgram shader;
 
-    final void preDraw()
-    {
-        bind();
-        shader.use();
-        foreach( name, buf; vbo )
-            buf.enable();
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-        debug checkGL();
-    }
-
-    final void postDraw()
-    {
-        foreach( name, buf; vbo )
-            buf.disable();
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        unbind();
-
-        debug checkGL();
-    }
-
 public:
 
     SignalBox!Args draw;
@@ -208,8 +188,8 @@ public:
 
         debug checkGL();
 
-        draw.addPair( (Args args){ preDraw(); },
-                      (Args args){ postDraw(); } );
+        draw.addPair( (Args args) { bind(); shader.use(); },
+                      (Args args) { unbind(); } );
     }
 
     ~this()
