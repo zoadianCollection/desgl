@@ -34,22 +34,33 @@ public:
     this( ShaderProgram sp )
     {
         debug log.trace( "rhape ctor start" );
+
         super( sp );
+
         debug log.trace( "rhape base class ctor" );
+
         auto pos = new buffer( "pos", GL_ARRAY_BUFFER, 
                 [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
         pos.setAttribPointer( "vertex", 2, GL_FLOAT );
+
         debug log.trace( "pos vbo" );
+
         auto uv = this.new buffer( "uv", GL_ARRAY_BUFFER, 
                 [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
         uv.setAttribPointer( "uv", 2, GL_FLOAT );
+
         debug log.trace( "uv vbo" );
+
         auto col = this.new buffer( "col", GL_ARRAY_BUFFER, 
                 colArray( col4( 1,1,1,1 ) ) ); 
         col.setAttribPointer( "color", 4, GL_FLOAT );
+
         debug log.trace( "col vbo: ", colArray( col4(1,1,1,1) ) );
+
         tex = new GLTexture2D( ivec2(1,1) ); 
+
         debug log.trace( "tex ctor" );
+
         draw.connect( (){ glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
         draw.addPair( (){ 
                     shader.setUniform!int( "use_texture", use_tex );
@@ -57,6 +68,7 @@ public:
                     if( use_tex ) tex.bind(); 
                 },
                 (){ if( use_tex ) tex.unbind(); } );
+
         debug log.info( "rhape ctor finish" );
     }
 
