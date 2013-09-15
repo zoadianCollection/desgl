@@ -57,7 +57,7 @@ public:
 
         debug log.trace( "col vbo: ", colArray( col4(1,1,1,1) ) );
 
-        tex = new GLTexture2D( ivec2(1,1) ); 
+        tex = new GLTexture2D; 
 
         debug log.trace( "tex ctor" );
 
@@ -80,7 +80,7 @@ public:
         if( isCompVector!(2,int,T) && ( is( E == ubyte ) ) )
     { 
         static if( is( E == ubyte ) ) enum type = GL_UNSIGNED_BYTE;
-        tex.image( sz, GL_RED, GL_RED, type, data ); 
+        tex.image( sz, GL_RED, GL_RED, type, data.ptr ); 
         use_tex = 1;
     }
 
@@ -98,7 +98,7 @@ public:
         else static if( N == 4 )
             enum fmt = GL_RGBA;
 
-        tex.image( sz, fmt, fmt, type, data ); 
+        tex.image( sz, fmt, fmt, type, data.ptr ); 
         use_tex = 2;
     }
 
