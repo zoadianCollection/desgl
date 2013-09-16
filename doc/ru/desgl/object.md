@@ -47,7 +47,7 @@
 * заполнить буфер данными
 
     ```d
-    void data(E)( in E[] data_arr, GLenum mem );
+    void setData(E)( in E[] data_arr, GLenum mem );
     ```
 
     `data_arr` - массив данных

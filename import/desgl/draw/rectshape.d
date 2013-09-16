@@ -72,7 +72,7 @@ public:
         debug log.info( "rhape ctor finish" );
     }
 
-    void setColor( in col4 c ){ vbo["col"].data( colArray( c ) ); }
+    void setColor( in col4 c ){ vbo["col"].setData( colArray( c ) ); }
 
     void notUseTexture(){ use_tex = 0; }
 
@@ -102,5 +102,5 @@ public:
         use_tex = 2;
     }
 
-    void reshape( in irect r ) { vbo["pos"].data( r.points!float ); }
+    void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
 }

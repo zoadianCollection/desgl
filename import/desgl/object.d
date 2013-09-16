@@ -63,7 +63,7 @@ protected:
             type = tp;
             glGenBuffers( 1, &id );
             debug checkGL();
-            if( data_arr ) data( data_arr, mem );
+            if( data_arr ) setData( data_arr, mem );
             debug checkGL();
             debug log.info( "vbo ctor finish" );
         }
@@ -86,7 +86,7 @@ protected:
             debug log.trace( "unbind vbo [id: ", id, "] [type:", type, "] to 0" );
         }
 
-        void data(E)( in E[] data_arr, GLenum mem=GL_DYNAMIC_DRAW )
+        void setData(E)( in E[] data_arr, GLenum mem=GL_DYNAMIC_DRAW )
         {
             this.outer.bind();
             auto size = E.sizeof * data_arr.length;
