@@ -3,11 +3,10 @@ module desgl.draw.vfield;
 import derelict.opengl3.gl3;
 
 import desmath.types.vector;
+public import desmath.types.special : posvec;
 
 import desgl.object;
 import desgl.ssready;
-
-struct posvec { vec2 pos, val; }
 
 class VField: GLObj!()
 {
@@ -44,9 +43,9 @@ public:
 
     void setWinSize( in vec2 w ) { winsize = w; }
 
-    void setCoords( in posvec[] data... ) 
+    void setCoords( in posvec!2[] data... ) 
     { 
-        void setSimpleCoords( in posvec[] info )
+        void setSimpleCoords( in posvec!2[] info )
         {
             vec2[] ndt;
             foreach( pv; info )
@@ -62,7 +61,7 @@ public:
             setSimpleCoords( data );
         else
         {
-            posvec[] ndt;
+            posvec!2[] ndt;
             import std.math;
             foreach( pv; data )
             {
@@ -83,8 +82,8 @@ public:
                 auto cospvy = cosa * apv.y;
                 auto sinpvy = sina * apv.y;
 
-                ndt ~= posvec( npos, vec2( cospvx - sinpvy,  sinpvx + cospvy ) );
-                ndt ~= posvec( npos, vec2( cospvx + sinpvy, -sinpvx + cospvy ) );
+                ndt ~= posvec!2( npos, vec2( cospvx - sinpvy,  sinpvx + cospvy ) );
+                ndt ~= posvec!2( npos, vec2( cospvx + sinpvy, -sinpvx + cospvy ) );
             }
             setSimpleCoords( ndt );
         }
