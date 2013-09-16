@@ -1,37 +1,20 @@
-module desgl.draw.vector;
+module desgl.draw.vfield;
 
 import derelict.opengl3.gl3;
 
 import desmath.types.vector;
 
 import desgl.object;
+import desgl.ssready;
 
 struct posvec { vec2 pos, val; }
-
-enum ShaderSource SS_WINCRD_UNIFORMCOLOR = 
-{
-r"
-#version 120
-uniform vec2 winsize;
-attribute vec2 vertex;
-void main(void)
-{
-    gl_Position = vec4( 2.0 * vec2(vertex.x, -vertex.y) / winsize + vec2(-1.0,1.0), -0.05, 1 );
-}
-", 
-
-r"
-#version 120
-uniform vec4 color;
-void main(void) { gl_FragColor = color; }
-"
-};
 
 class VField: GLObj!()
 {
 private:
     int vcnt=0;
     col4 clr = col4(1,1,1,1);
+    vec2 winsize = vec(1,1);
 public:
     this( ShaderProgram sh=null )
     {
@@ -40,11 +23,15 @@ public:
         super( sh );
         auto pos = new buffer( "pos", GL_ARRAY_BUFFER, [ 0.0f, 0 ], GL_DYNAMIC_DRAW );
         pos.setAttribPointer( "vertex", 2, GL_FLOAT );
-        draw.addBegin( (){ shader.setUniformVec( "color", clr ); } );
+        draw.addBegin( (){ 
+                shader.setUniformVec( "color", clr ); 
+                shader.setUniformVec( "winsize", winsize ); 
+                } );
         draw.connect( (){ glDrawArrays( GL_LINES, 0, vcnt ); } );
     }
 
     void setColor( in col4 c ) { clr = c; }
+    void setWinSize( in vec2 w ) { winsize = w; }
 
     void setCoords( in posvec[] data... ) 
     { 
