@@ -30,7 +30,6 @@ private:
     uint texID;
 
     import std.string : format;
-    enum fullAccessString = "whd";
 
 protected:
     texsize sz;
@@ -38,7 +37,7 @@ protected:
 public:
 
     mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
-    alias vec!(DIM,int,fullAccessString[0 .. DIM]) texsize; 
+    alias vec!(DIM,int,"whd"[0 .. DIM]) texsize; 
 
     this()
     {
