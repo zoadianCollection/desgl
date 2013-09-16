@@ -1,4 +1,4 @@
-### object.d ###
+## object.d
 
 
 ### GLObj
@@ -10,11 +10,11 @@
 
 Для использования нужно наследовать от `GLObj` свой класс.
 
-##### `final class buffer`
+#### `final class buffer`
 
 Вложенный в `GLObj` класс, является обёрткой для vertex buffer object.
 
-###### методы
+##### методы
 
 * конструктор 
 

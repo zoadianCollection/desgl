@@ -40,8 +40,7 @@ public:
     mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
     alias vec!(DIM,int,fullAccessString[0 .. DIM]) texsize; 
 
-    this(A)( A Size )
-        if( isCompVector!(DIM,int,A) )
+    this()
     {
         glActiveTexture( GL_TEXTURE0 );
         glGenTextures( 1, &texID );
@@ -51,8 +50,6 @@ public:
         parameteri( GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
         parameteri( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         parameteri( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-
-        sz = texsize( Size );
     }
 
     /+ TODO
@@ -69,12 +66,12 @@ public:
 
     final @property texsize size() const { return sz; }
 
-    final void image(T,E)( in T nsz, int texfmt, GLenum datafmt, GLenum datatype, E[] data )
+    final void image(T,E)( in T nsz, int texfmt, GLenum datafmt, GLenum datatype, in E* data )
         if( isCompVector!(DIM,int,T) )
     {
         sz = nsz;
         bind();
-        mixin( format( "glTexImage%1dD( type, 0, texfmt, %s, 0, datafmt, datatype, cast(void*)data.ptr );",
+        mixin( format( "glTexImage%1dD( type, 0, texfmt, %s, 0, datafmt, datatype, cast(void*)data );",
                     DIM, accessVecFields!(T,"sz") ) );
     }
 
