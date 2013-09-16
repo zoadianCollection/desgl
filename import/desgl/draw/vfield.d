@@ -14,7 +14,7 @@ class VField: GLObj!()
 private:
     int vcnt=0;
     col4 clr = col4(1,1,1,1);
-    vec2 winsize = vec(1,1);
+    vec2 winsize = vec2(1,1);
 public:
     this( ShaderProgram sh=null )
     {
@@ -31,11 +31,62 @@ public:
     }
 
     void setColor( in col4 c ) { clr = c; }
+
+    struct ArrowInfo
+    {
+        bool use = false;
+        bool absoluteSize = true;
+        float size = 10;
+        float angle = 0.3;
+    }
+
+    ArrowInfo arrow;
+
     void setWinSize( in vec2 w ) { winsize = w; }
 
     void setCoords( in posvec[] data... ) 
     { 
-        vbo["pos"].setData( data ); 
-        vcnt = data.length * 2;
+        void setSimpleCoords( in posvec[] info )
+        {
+            vec2[] ndt;
+            foreach( pv; info )
+            {
+                ndt ~= pv.pos;
+                ndt ~= pv.pos + pv.val;
+            }
+            vbo["pos"].setData( ndt ); 
+            vcnt = cast(int)ndt.length;
+        }
+
+        if( !arrow.use )
+            setSimpleCoords( data );
+        else
+        {
+            posvec[] ndt;
+            import std.math;
+            foreach( pv; data )
+            {
+                ndt ~= pv;
+                auto npos = pv.pos + pv.val;
+                auto cosa = cos(arrow.angle);
+                auto sina = sin(arrow.angle);
+
+                vec2 apv;
+                if( arrow.absoluteSize )
+                    apv = -pv.val.e * arrow.size;
+                else
+                    apv = -pv.val * arrow.size;
+
+                auto cospvx = cosa * apv.x;
+                auto sinpvx = sina * apv.x;
+
+                auto cospvy = cosa * apv.y;
+                auto sinpvy = sina * apv.y;
+
+                ndt ~= posvec( npos, vec2( cospvx - sinpvy,  sinpvx + cospvy ) );
+                ndt ~= posvec( npos, vec2( cospvx + sinpvy, -sinpvx + cospvy ) );
+            }
+            setSimpleCoords( ndt );
+        }
     }
 }
