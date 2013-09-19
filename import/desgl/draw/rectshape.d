@@ -102,5 +102,11 @@ public:
         use_tex = 2;
     }
 
+    void fillRawTexture(T,E)( in T sz, int texfmt, GLenum datafmt, GLenum datatype, in E* data )
+    {
+        tex.image( sz, texfmt, datafmt, datatype, data );
+        use_tex = 2;
+    }
+
     void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
 }
