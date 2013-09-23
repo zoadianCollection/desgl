@@ -36,10 +36,10 @@ private:
 
 protected:
 
-    final class buffer
+    class buffer
     {
-    private:
-        uint id; // OpenGL VBO ID
+    protected:
+        uint _id; // OpenGL VBO ID
         GLenum type;
         uint[] attribs;
 
@@ -61,7 +61,7 @@ protected:
             this.outer.bind();
             addThis( name );
             type = tp;
-            glGenBuffers( 1, &id );
+            glGenBuffers( 1, &_id );
             debug checkGL();
             if( data_arr ) setData( data_arr, mem );
             debug checkGL();
@@ -71,7 +71,7 @@ protected:
         void bind()
         {
             this.outer.bind();
-            glBindBuffer( type, id );
+            glBindBuffer( type, _id );
 
             debug checkGL();
             debug log.trace( "bind vbo [id: ", id, "]" );
@@ -92,7 +92,7 @@ protected:
             auto size = E.sizeof * data_arr.length;
             if( !size ) throw new GLObjException( "buffer data size is 0" );
 
-            glBindBuffer( type, id );
+            glBindBuffer( type, _id );
             glBufferData( type, size, data_arr.ptr, mem );
             glBindBuffer( type, 0 );
 
@@ -107,7 +107,7 @@ protected:
                 glEnableVertexAttribArray( attr );
 
             debug checkGL();
-            debug log.trace( "vbo [id:", id, "] enable attrs" );
+            debug log.trace( "vbo [id:", _id, "] enable attrs" );
         }
 
         void disable()
@@ -118,7 +118,7 @@ protected:
                 glDisableVertexAttribArray( attr );
 
             debug checkGL();
-            debug log.trace( "vbo [id:", id, "] disable attrs" );
+            debug log.trace( "vbo [id:", _id, "] disable attrs" );
         }
 
         void setAttribPointer( string attrname, uint size,
@@ -136,7 +136,7 @@ protected:
                 throw new GLObjException( "bad attribute name '" ~ attrname ~ "'" );
 
 
-            glBindBuffer( type, id );
+            glBindBuffer( type, _id );
             scope(exit) 
                 glBindBuffer( type, 0 );
 
@@ -157,10 +157,12 @@ protected:
             debug log.trace( "vbo [id:", id, "] set attrib pointer" );
         }
 
+        @property nothrow uint id() const { return _id; }
+
         ~this()
         {
             unbind();
-            glDeleteBuffers( 1, &id );
+            glDeleteBuffers( 1, &_id );
             
             debug checkGL();
         }
