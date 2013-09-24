@@ -81,3 +81,5 @@ public:
         glDeleteTextures( 1, &texID );
     }
 }
+
+alias GLTexture!2 GLTexture2D;
