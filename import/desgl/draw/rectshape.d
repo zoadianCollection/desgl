@@ -12,7 +12,6 @@ import desgl.object;
 import desgl.texture;
 
 alias vrect!int irect;
-alias GLTexture!2 GLTexture2D;
 
 import desutil.logger;
 debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
@@ -77,9 +76,12 @@ public:
     void notUseTexture(){ use_tex = 0; }
 
     void fillAlphaTexture(T,E)( in T sz, E[] data )
-        if( isCompVector!(2,int,T) && ( is( E == ubyte ) ) )
+        if( isCompVector!(2,int,T) && ( is( E == ubyte ) || is( E == float ) ) )
     { 
         static if( is( E == ubyte ) ) enum type = GL_UNSIGNED_BYTE;
+        else
+        static if( is( E == float ) ) enum type = GL_FLOAT;
+
         tex.image( sz, GL_RED, GL_RED, type, data.ptr ); 
         use_tex = 1;
     }
