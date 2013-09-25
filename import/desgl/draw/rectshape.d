@@ -16,7 +16,9 @@ alias vrect!int irect;
 import desutil.logger;
 debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
 
-class RectShape: GLObj!()
+import desgl.draw.shape;
+
+class RectShape: UIDrawObj
 {
 protected:
     static float[] colArray( in col4 c )
@@ -56,59 +58,13 @@ public:
 
         debug log.trace( "col vbo: ", colArray( col4(1,1,1,1) ) );
 
-        tex = new GLTexture2D; 
-
         debug log.trace( "tex ctor" );
 
         draw.connect( (){ glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
-        draw.addPair( (){ 
-                    shader.setUniform!int( "use_texture", use_tex );
-                    shader.setUniform!int( "ttu", GL_TEXTURE0 );
-                    if( use_tex ) tex.bind(); 
-                },
-                (){ if( use_tex ) tex.unbind(); } );
 
         debug log.info( "rhape ctor finish" );
     }
 
-    void setColor( in col4 c ){ vbo["col"].setData( colArray( c ) ); }
-
-    void notUseTexture(){ use_tex = 0; }
-
-    void fillAlphaTexture(T,E)( in T sz, E[] data )
-        if( isCompVector!(2,int,T) && ( is( E == ubyte ) || is( E == float ) ) )
-    { 
-        static if( is( E == ubyte ) ) enum type = GL_UNSIGNED_BYTE;
-        else
-        static if( is( E == float ) ) enum type = GL_FLOAT;
-
-        tex.image( sz, GL_RED, GL_RED, type, data.ptr ); 
-        use_tex = 1;
-    }
-
-    void fillColorTexture(T,size_t N,E,string as)( in T sz, vec!(N,E,as)[] data )
-        if( isCompVector!(2,int,T) && ( N==3 || N==4 ) && 
-                ( is( E == ubyte ) || is( E == float ) ) )
-    {
-        static if( is( E == ubyte ) ) 
-            enum type = GL_UNSIGNED_BYTE;
-        else static if( is( E == float ) ) 
-            enum type = GL_FLOAT;
-
-        static if( N == 3 ) 
-            enum fmt = GL_RGB;
-        else static if( N == 4 )
-            enum fmt = GL_RGBA;
-
-        tex.image( sz, fmt, fmt, type, data.ptr ); 
-        use_tex = 2;
-    }
-
-    void fillRawTexture(T,E)( in T sz, int texfmt, GLenum datafmt, GLenum datatype, in E* data )
-    {
-        tex.image( sz, texfmt, datafmt, datatype, data );
-        use_tex = 2;
-    }
-
-    void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
+    override void setColor( in col4 c ){ vbo["col"].setData( colArray( c ) ); }
+    override void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
 }
