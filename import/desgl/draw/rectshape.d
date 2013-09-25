@@ -18,7 +18,7 @@ debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
 
 import desgl.draw.shape;
 
-class RectShape: UIDrawObj
+class RectShape: Shape
 {
 protected:
     static float[] colArray( in col4 c )

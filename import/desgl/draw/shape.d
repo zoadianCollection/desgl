@@ -12,7 +12,7 @@ alias vrect!int irect;
 
 import desutil.signal;
 
-class UIDrawObj: GLObj!()
+class Shape: GLObj!()
 {
 protected:
     GLTexture2D tex;
@@ -67,34 +67,4 @@ public:
         tex.image( sz, texfmt, datafmt, datatype, data );
         use_tex = 2;
     }
-}
-
-class Shape
-{
-protected:
-
-    abstract void prepare( ShaderProgram );
-
-public:
-
-    UIDrawObj fill, cont;
-
-    this( ShaderProgram sp )
-    {
-        prepare( sp );
-
-        draw.connect( () 
-        {
-            fill.draw();
-            cont.draw();
-        });
-    }
-
-    final void reshape( in irect r ) 
-    { 
-        fill.reshape( r );
-        cont.reshape( r );
-    }
-
-    SignalBoxNoArgs draw;
 }
