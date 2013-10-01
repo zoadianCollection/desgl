@@ -1,0 +1,8 @@
+{
+	"name": "desgl",
+    "targetType": "sourceLibrary",
+	"dependencies": {
+        "desutil": "~master",
+        "desmath": "~master"
+	}
+}
