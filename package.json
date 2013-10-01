@@ -1,6 +1,8 @@
 {
 	"name": "desgl",
     "targetType": "sourceLibrary",
+    "importPaths": [ "import" ],
+    "sourcePaths": [ "import" ],
 	"dependencies": {
         "desutil": "~master",
         "desmath": "~master"
