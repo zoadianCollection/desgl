@@ -200,6 +200,9 @@ public:
         checkLocation( loc ); use();
         mixin( "glUniform" ~ to!string(T.length) ~ glPostfix!S ~ "( loc, " ~ 
                 castArgsString!(S,"vals",T) ~ " );" );
+        /* workaround: 
+           before glUniform glGetError return 0x0501 errcode, 
+           ignore it force */ 
         glGetError();
         debug checkGL;
     }
