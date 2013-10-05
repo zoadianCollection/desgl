@@ -4,21 +4,12 @@ import derelict.opengl3.gl3;
 
 import desutil.signal;
 
+import desgl.helpers;
+
 import desutil.logger;
 debug mixin( LoggerPrivateMixin( "globj", __MODULE__ ) );
 
 class GLObjException : Exception { this( string msg ){ super( msg ); } }
-
-debug
-{
-    void checkGL( int ln=__LINE__ )
-    {
-        import std.string : format;
-        auto err = glGetError();
-        if( err != GL_NO_ERROR )
-            log.trace( format( " ## GL ERROR ## at line: #%s: 0x%04x", ln, err ) );
-    }
-}
 
 class GLVBO
 {
@@ -28,11 +19,13 @@ protected:
 public:
     static nothrow void unbind( GLenum tp ){ glBindBuffer( tp, 0 ); }
 
-    this(E)( GLenum Type=GL_ARRAY_BUFFER, in E[] data_arr=null, GLenum mem=GL_DYNAMIC_DRAW )
+    this(E)( in E[] data_arr=null, GLenum Type=GL_ARRAY_BUFFER, GLenum mem=GL_DYNAMIC_DRAW )
     {
         glGenBuffers( 1, &vboID );
         type = Type;
         if( data_arr !is null ) setData( data_arr, mem );
+
+        debug checkGL;
     }
 
     final
@@ -53,7 +46,7 @@ public:
             glBufferData( type, size, data_arr.ptr, mem );
             glBindBuffer( type, 0 );
 
-            debug checkGL();
+            debug checkGL;
             debug log.trace( "vbo data: ", data_arr );
         }
     }
@@ -65,35 +58,36 @@ final class GLVAO
 {
 protected:
     uint vaoID;
-    bool[int] attr;
 
 public:
     static nothrow void unbind(){ glBindVertexArray(0); }
 
     this() { glGenVertexArrays( 1, &vaoID ); }
 
-    nothrow void bind() { glBindVertexArray( vaoID ); }
-
-    void enable( int n )
-    { 
-        bind();
-        glEnableVertexAttribArray( n ); 
-        attr[n] = true;
-    }
-
-    void disable( int n )
-    { 
-        bind();
-        glDisableVertexAttribArray( n ); 
-        attr[n] = false;
-    }
-
-    bool checkEnable( int[] locs )
+    nothrow 
     {
-        foreach( n; locs )
-            if( n !in attr || !attr[n] ) 
-                return false;
-        return true;
+        void bind() 
+        { 
+            glBindVertexArray( vaoID ); 
+            debug log.trace( "bind: ", vaoID );
+            debug checkGL;
+        }
+
+        void enable( int n )
+        { 
+            bind();
+            glEnableVertexAttribArray( n ); 
+            debug log.info( "enable attrib ", n, " for vao ", vaoID );
+            debug checkGL;
+        }
+
+        void disable( int n )
+        { 
+            bind();
+            glDisableVertexAttribArray( n ); 
+            debug log.info( "disable attrib ", n, " for vao ", vaoID );
+            debug checkGL;
+        }
     }
 
     ~this() { glDeleteVertexArrays( 1, &vaoID ); }
@@ -104,18 +98,22 @@ class GLObj(Args...)
 protected:
     GLVAO vao;
 
-    void setAttribPointer( GLVBO buffer, int index, uint size, GLenum attype, bool norm=false )
-    { setAttribPointer( index, size, attype, 0, 0, norm ); }
-
-    void setAttribPointer( GLVBO buffer, int index, uint size, 
-            GLenum attype, size_t stride, size_t offset, bool norm=false )
+    final nothrow
     {
-        vao.bind();
-        buffer.bind();
-        vao.enable( index );
-        glVertexAttribPointer( index, cast(int)size, attype, norm, 
-                cast(int)stride, cast(void*)offset );
-        buffer.unbind();
+        void setAttribPointer( GLVBO buffer, int index, uint size, GLenum attype, bool norm=false )
+        { setAttribPointer( buffer, index, size, attype, 0, 0, norm ); }
+
+        void setAttribPointer( GLVBO buffer, int index, uint size, 
+                GLenum attype, size_t stride, size_t offset, bool norm=false )
+        {
+            vao.bind();
+            vao.enable( index );
+
+            buffer.bind();
+            glVertexAttribPointer( index, cast(int)size, attype, norm, 
+                    cast(int)stride, cast(void*)offset );
+            buffer.unbind();
+        }
     }
 
 public:
@@ -125,5 +123,8 @@ public:
     {
         vao = new GLVAO;
         draw.addBegin( (Args args){ vao.bind(); } );
+
+        debug draw.addBegin( (Args args){ checkGL; } ); 
+        debug checkGL;
     }
 }
