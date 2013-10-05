@@ -8,6 +8,11 @@ import std.string : format;
 
 import derelict.opengl3.gl3;
 
+import desutil.logger;
+debug mixin( LoggerPrivateMixin( "glshader", __MODULE__ ) );
+
+import desgl.helpers;
+
 @property private string castArgsString(S,string data,T...)()
 {
     string ret = "";
@@ -73,7 +78,7 @@ private:
     static GLuint makeShader( GLenum type, string src )
     {
         GLuint shader = glCreateShader( type );
-        debug(3) stderr.writeln( "create shader ", shader, " with type ", type ); 
+        debug log.info( "create shader ", shader, " with type ", type ); 
         auto srcptr = src.ptr;
         glShaderSource( shader, 1, &(srcptr), null );
         glCompileShader( shader );
@@ -92,6 +97,7 @@ private:
             }
         }
 
+        debug checkGL;
         return shader;
     }
 
@@ -110,6 +116,7 @@ private:
                 throw new ShaderException( "program link error: \n" ~ chlog.idup );
             }
         }
+        debug checkGL;
     }
 
     void destruct()
@@ -124,6 +131,7 @@ private:
         glDeleteShader( frag_sh );
         if( geom_sh ) glDeleteShader( geom_sh );
         glDeleteShader( vert_sh );
+        debug checkGL;
     }
 
     void construct( in ShaderSource src )
@@ -147,6 +155,7 @@ private:
 
         glLinkProgram( program );
         checkProgram( program );
+        debug checkGL;
     }
 
     void checkLocation( int loc )
@@ -159,18 +168,31 @@ public:
     this( in ShaderSource src ) { construct( src ); }
     ~this() { destruct(); }
 
-    final void use()
+    final nothrow void use()
     {
         if( inUse == program ) return;
         glUseProgram( program );
         inUse = program;
+        debug checkGL;
     }
 
     int getAttribLocation( string name )
-    { return glGetAttribLocation( program, name.ptr ); }
+    { 
+        auto ret = glGetAttribLocation( program, name.ptr ); 
+        debug checkGL;
+        if( ret < 0 )
+            throw new ShaderException( "bad attribute name: " ~ name );
+        return ret;
+    }
 
     int getUniformLocation( string name )
-    { return glGetUniformLocation( program, name.ptr ); }
+    { 
+        auto ret = glGetUniformLocation( program, name.ptr ); 
+        debug checkGL;
+        if( ret < 0 )
+            throw new ShaderException( "bad uniform name: " ~ name );
+        return ret;
+    }
 
     void setUniform(S,T...)( int loc, T vals ) 
         if( checkUniform!(S,T) )
@@ -178,6 +200,8 @@ public:
         checkLocation( loc ); use();
         mixin( "glUniform" ~ to!string(T.length) ~ glPostfix!S ~ "( loc, " ~ 
                 castArgsString!(S,"vals",T) ~ " );" );
+        glGetError();
+        debug checkGL;
     }
 
     void setUniform(S,T...)( string name, T vals ) 
@@ -192,6 +216,7 @@ public:
         use();
         mixin( "glUniform" ~ to!string(sz) ~ glPostfix!T ~ 
                 "v( loc, cast(int)cnt, vlas.ptr );" );
+        debug checkGL;
     }
 
     void setUniformArr(size_t sz,T)( string name, in T[] vals )
@@ -202,10 +227,14 @@ public:
         if( N > 0 && N < 5 && (glPostfix!T).length != 0 )
     {
         checkLocation( loc ); 
-        auto cnt = vals.length;
         use();
+
+        T[] data;
+        foreach( v; vals ) data ~= v.data;
+
         mixin( "glUniform" ~ to!string(N) ~ glPostfix!T ~ 
-                "v( loc, cast(int)cnt, cast(" ~ T.stringof ~ "*)vals.ptr );" );
+                "v( loc, cast(int)(data.length / N), cast(" ~ T.stringof ~ "*)data.ptr );" );
+        debug checkGL;
     }
 
     void setUniformVec(size_t N,T,string AS)( string name, vec!(N,T,AS)[] vals... )
@@ -223,6 +252,7 @@ public:
         else
             mixin( "glUniformMatrix" ~ to!string(h) ~ "x" ~ to!string(w) ~
                     "fv( loc, cast(int)mtr.length GL_TRUE, cast(float*)mtr.ptr ); " );
+        debug checkGL;
     }
 
     void setUniformMat(size_t h, size_t w)( string name, in mat!(h,w,float)[] mtr... )
