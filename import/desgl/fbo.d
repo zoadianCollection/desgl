@@ -114,60 +114,37 @@ public:
     }
 }
 
-import desgl.object;
-alias const ref irect in_irect;
-
-class SimpleRect: GLObj!()
-{
-protected:
-    GLVBO pos, uv;
-
-public:
-    Signal!in_irect reshape;
-
-    this( ShaderProgram fx, int posloc, int uvloc ) 
-    { 
-        pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
-        setAttribPointer( pos, posloc, 2, GL_FLOAT );
-
-        uv = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], 
-                        GL_ARRAY_BUFFER, GL_STATIC_DRAW );
-        setAttribPointer( uv, uvloc, 2, GL_FLOAT );
-
-        reshape.connect( (r) { pos.setData( r.points!float ); } );
-        draw.connect( () { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
-    }
-}
+import desgl.draw.rectshape;
 
 class GLFBODraw(Args...)
 {
 protected:
     GLFBO fbo;
 
-    SimpleRect obj;
+    TexturedRect obj;
 
-    ShaderProgram shader;
+    ShaderProgram fx;
 public:
 
     Signal!in_irect reshape;
     SignalBoxNoArgs render, draw;
 
-    this( ShaderProgram fx, int posloc, int uvloc, 
+    this( ShaderProgram shader, int posloc, int uvloc, 
                             int wszloc, int ttuloc )
     {
         glActiveTexture( GL_TEXTURE0 );
         fbo = new GLFBO;
-        shader = fx;
+        fx = shader;
 
-        obj = new SimpleRect( fx, posloc, uvloc );
+        obj = new TexturedRect( posloc, uvloc );
 
         render.addBegin( (Args a) { fbo.bind(); } );
         render.addEnd( (Args args) { fbo.unbind(); } );
 
         draw.connect( () 
         {
-            shader.use();
-            shader.setUniform!int( ttuloc, GL_TEXTURE0 );
+            fx.use();
+            fx.setUniform!int( ttuloc, GL_TEXTURE0 );
             fbo.bindTexture();
             obj.draw();
         });
@@ -176,7 +153,7 @@ public:
         { 
             fbo.resize( r.size ); 
             obj.reshape( r );
-            shader.setUniformVec( wszloc, vec2( fbo.size ) );
+            fx.setUniformVec( wszloc, vec2( fbo.size ) );
         } );
     }
 }

@@ -37,3 +37,20 @@ pure nothrow string toDStringFix(size_t S)( const(char[S]) c_buf )
     foreach( c; c_buf ) buf ~= c;
     return buf;
 }
+
+import desmath.types.vector;
+
+pure nothrow T[] dataArray(size_t N, T, string AS)( size_t cnt, in vec!(N,T,AS) v )
+{ 
+    T[] ret;
+    foreach( i; 0 .. cnt ) ret ~= v.data;
+    return ret;
+}
+
+pure nothrow T[] dataArray(size_t N, T, string AS)( in vec!(N,T,AS)[] arr... )
+{ 
+    T[] ret;
+    foreach( v; arr ) ret ~= v.data;
+    return ret;
+}
+
