@@ -109,7 +109,7 @@ void main(void)
     int dw = 4;
     int dh = 4;
 
-    float c = 0.5f;
+    float c = 0.3f;
 
     float xs = 1.0f / winsize.x;
     float ys = 1.0f / winsize.y;
@@ -149,12 +149,17 @@ void main(void)
 }`,
 `#version 120
 uniform sampler2D ttu;
-uniform float alpha;
+uniform float coef;
 varying vec2 ex_uv;
 void main(void)
 {
     vec4 res = texture2D( ttu, ex_uv );
-    res *= alpha;
+    res.xyz *= coef;
+    float kk = 1;
+    float rl = length(res.xyz);
+    float vv = 0.05;
+    if( rl < vv ) kk -= vv + rl;
+    res.w *= kk;
     gl_FragColor = res;
 }`
 };
