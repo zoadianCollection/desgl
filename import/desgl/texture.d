@@ -21,7 +21,7 @@ class GLTexture(ubyte DIM)
 {
 private:
     static uint currentUseID = 0;
-    static void set_to_use( uint ntex )
+    static nothrow void set_to_use( uint ntex )
     {
         glBindTexture( type, ntex );
         currentUseID = ntex;
@@ -60,8 +60,8 @@ public:
         glTexParameteri( type, param, val ); 
     }
 
-    final void bind()   { if( currentUseID != texID ) set_to_use( texID ); }
-    final void unbind() { if( currentUseID == texID ) set_to_use( 0 ); }
+    final nothrow void bind()   { if( currentUseID != texID ) set_to_use( texID ); }
+    final nothrow void unbind() { if( currentUseID == texID ) set_to_use( 0 ); }
 
     final @property texsize size() const { return sz; }
 
