@@ -17,13 +17,6 @@ class GLFBOException : Exception { this( string msg ){ super( msg ); } }
 class GLFBO
 {
 private:
-
-    static int currentUseTexID = -1;
-    static void set_tex_to_use( uint ntex )
-    {
-        currentUseTexID = ntex;
-    }
-
     uint texID;
     uint rboID;
     uint fboID;
@@ -37,7 +30,7 @@ public:
 
     this()
     {
-        sz = ivec2( 256, 256 );
+        sz = ivec2( 1, 1 );
 
         // Texture 
         glGenTextures( 1, &texID );
@@ -132,7 +125,6 @@ public:
     this( ShaderProgram shader, int posloc, int uvloc, 
                             int wszloc, int ttuloc )
     {
-        glActiveTexture( GL_TEXTURE0 );
         fbo = new GLFBO;
         fx = shader;
 
@@ -153,7 +145,7 @@ public:
         { 
             fbo.resize( r.size ); 
             obj.reshape( r );
-            fx.setUniformVec( wszloc, vec2( fbo.size ) );
-        } );
+            fx.setUniformVec( wszloc, vec2( r.size ) );
+        });
     }
 }
