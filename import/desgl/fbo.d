@@ -95,7 +95,7 @@ public:
     final nothrow void bindTexture() { glBindTexture( GL_TEXTURE_2D, texID ); }
     final nothrow void unbindTexture() { glBindTexture( GL_TEXTURE_2D, 0 ); }
 
-    @property nothrow auto size() const { return sz; }
+    nothrow @property auto size() const { return sz; }
 
     ~this()
     {
@@ -111,41 +111,21 @@ import desgl.draw.rectshape;
 
 class GLFBODraw(Args...)
 {
-protected:
     GLFBO fbo;
-
     TexturedRect obj;
 
-    ShaderProgram fx;
-public:
+    SignalBox!Args render, draw;
 
-    Signal!in_irect reshape;
-    SignalBoxNoArgs render, draw;
-
-    this( ShaderProgram shader, int posloc, int uvloc, 
-                            int wszloc, int ttuloc )
+    this( int posloc, int uvloc )
     {
         fbo = new GLFBO;
-        fx = shader;
 
         obj = new TexturedRect( posloc, uvloc );
 
         render.addBegin( (Args a) { fbo.bind(); } );
-        render.addEnd( (Args args) { fbo.unbind(); } );
+        render.addEnd( (Args a) { fbo.unbind(); } );
 
-        draw.connect( () 
-        {
-            fx.use();
-            fx.setUniform!int( ttuloc, GL_TEXTURE0 );
-            fbo.bindTexture();
-            obj.draw();
-        });
-
-        reshape.connect( (r)
-        { 
-            fbo.resize( r.size ); 
-            obj.reshape( r );
-            fx.setUniformVec( wszloc, vec2( r.size ) );
-        });
+        draw.addBegin( (Args a) { fbo.bindTexture(); });
+        draw.connect( (Args a) { obj.draw(); } );
     }
 }
