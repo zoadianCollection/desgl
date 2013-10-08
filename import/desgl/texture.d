@@ -1,6 +1,8 @@
 module desgl.texture;
 
-import derelict.opengl3.gl3;
+public import derelict.opengl3.gl3;
+
+import desgl.helpers;
 
 import desmath.types.vector;
 
@@ -19,7 +21,6 @@ private @property string accessVecFields(T,string name)()
 class GLTexture(ubyte DIM)
     if( DIM == 1 || DIM == 2 || DIM == 3 )
 {
-
     import std.string : format;
 
     private uint texID;
@@ -31,12 +32,16 @@ class GLTexture(ubyte DIM)
     this()
     {
         glGenTextures( 1, &texID );
+        debug checkGL;
         bind(); scope(exit) unbind();
+        debug checkGL;
 
         parameteri( GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
         parameteri( GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
         parameteri( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         parameteri( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+        debug checkGL;
     }
 
     /+ TODO
@@ -60,12 +65,15 @@ class GLTexture(ubyte DIM)
         bind();
         mixin( format( "glTexImage%1dD( type, 0, texfmt, %s, 0, datafmt, datatype, cast(void*)data );",
                     DIM, accessVecFields!(T,"sz") ) );
+        debug checkGL;
     }
 
     ~this()
     {
         unbind();
         glDeleteTextures( 1, &texID );
+
+        debug checkGL;
     }
 }
 
