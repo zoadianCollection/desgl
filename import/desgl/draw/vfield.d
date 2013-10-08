@@ -6,30 +6,18 @@ import desmath.types.vector;
 public import desmath.types.special : posvec;
 
 import desgl.object;
-import desgl.ssready;
 
 class VField: GLObj!()
 {
-private:
-    int vcnt=0;
-    col4 clr = col4(1,1,1,1);
-    vec2 winsize = vec2(1,1);
-public:
-    this( ShaderProgram sh=null )
-    {
-        if( sh is null )
-            sh = new ShaderProgram( SS_WINCRD_UNIFORMCOLOR );
-        super( sh );
-        auto pos = new buffer( "pos", GL_ARRAY_BUFFER, [ 0.0f, 0 ], GL_DYNAMIC_DRAW );
-        pos.setAttribPointer( "vertex", 2, GL_FLOAT );
-        draw.addBegin( (){ 
-                shader.setUniformVec( "color", clr ); 
-                shader.setUniformVec( "winsize", winsize ); 
-                } );
-        draw.connect( (){ glDrawArrays( GL_LINES, 0, vcnt ); } );
-    }
+    protected size_t vcnt=0;
+    protected GLVBO pos;
 
-    void setColor( in col4 c ) { clr = c; }
+    this( int posloc )
+    {
+        pos = new GLVBO( [ 0.0f, 0.0f ], GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW );
+        setAttribPointer( pos, posloc, 2, GL_FLOAT );
+        draw.connect( (){ glDrawArrays( GL_LINES, 0, cast(int)vcnt ); } );
+    }
 
     struct ArrowInfo
     {
@@ -41,8 +29,6 @@ public:
 
     ArrowInfo arrow;
 
-    void setWinSize( in vec2 w ) { winsize = w; }
-
     void setCoords( in posvec!2[] data... ) 
     { 
         void setSimpleCoords( in posvec!2[] info )
@@ -53,12 +39,11 @@ public:
                 ndt ~= pv.pos;
                 ndt ~= pv.pos + pv.val;
             }
-            vbo["pos"].setData( ndt ); 
-            vcnt = cast(int)ndt.length;
+            pos.setData( ndt ); 
+            vcnt = ndt.length;
         }
 
-        if( !arrow.use )
-            setSimpleCoords( data );
+        if( !arrow.use ) setSimpleCoords( data );
         else
         {
             posvec!2[] ndt;

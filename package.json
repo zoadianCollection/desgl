@@ -5,6 +5,7 @@
     "sourcePaths": [ "import" ],
 	"dependencies": {
         "desutil": "~master",
-        "desmath": "~master"
+        "desmath": "~master",
+        "derelict": "~master"
 	}
 }

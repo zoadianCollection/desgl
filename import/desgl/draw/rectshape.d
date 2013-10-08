@@ -9,62 +9,56 @@ import desmath.types.vector,
        desmath.types.rect;
 
 import desgl.object;
-import desgl.texture;
+import desgl.helpers;
+
+import desutil.signal;
 
 alias vrect!int irect;
+alias const ref irect in_irect;
 
 import desutil.logger;
 debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
 
-import desgl.draw.shape;
-
-class RectShape: Shape
+class SimpleRect: GLObj!()
 {
-protected:
-    static float[] colArray( in col4 c )
-    { return c.data ~ c.data ~ c.data ~ c.data; }
+    protected GLVBO pos;
+    Signal!in_irect reshape;
 
-    static float[] colArray( in col4[4] c )
-    { return c[0].data ~ c[1].data ~ c[2].data ~ c[3].data; }
-
-    GLTexture2D tex;
-    int use_tex = 0;
-
-public:
-
-    this( ShaderProgram sp )
+    this( int posloc )
     {
-        debug log.trace( "rhape ctor start" );
+        pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
+        setAttribPointer( pos, posloc, 2, GL_FLOAT );
 
-        super( sp );
+        reshape.connect( (r) { pos.setData( r.points!float ); } );
+        draw.connect( () { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
+    }
+}
 
-        debug log.trace( "rhape base class ctor" );
+class TexturedRect: SimpleRect
+{
+    protected GLVBO uv;
+    this( int posloc, int uvloc ) 
+    { 
+        super( posloc );
+        uv = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], 
+                        GL_ARRAY_BUFFER, GL_STATIC_DRAW );
+        setAttribPointer( uv, uvloc, 2, GL_FLOAT );
+    }
+}
 
-        auto pos = new buffer( "pos", GL_ARRAY_BUFFER, 
-                [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
-        pos.setAttribPointer( "vertex", 2, GL_FLOAT );
-
-        debug log.trace( "pos vbo" );
-
-        auto uv = this.new buffer( "uv", GL_ARRAY_BUFFER, 
-                [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
-        uv.setAttribPointer( "uv", 2, GL_FLOAT );
-
-        debug log.trace( "uv vbo" );
-
-        auto col = this.new buffer( "col", GL_ARRAY_BUFFER, 
-                colArray( col4( 1,1,1,1 ) ) ); 
-        col.setAttribPointer( "color", 4, GL_FLOAT );
-
-        debug log.trace( "col vbo: ", colArray( col4(1,1,1,1) ) );
-
-        debug log.trace( "tex ctor" );
-
-        draw.connect( (){ glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
-
-        debug log.info( "rhape ctor finish" );
+class ColorRect: SimpleRect
+{
+    protected GLVBO col;
+    this( int posloc, int colloc )
+    {
+        super( posloc );
+        col = new GLVBO( dataArray( 4, col4(1,1,1,1) ) );
+        setAttribPointer( col, colloc, 4, GL_FLOAT );
     }
 
-    override void setColor( in col4 c ){ vbo["col"].setData( colArray( c ) ); }
-    override void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
+    void setColor( in col4 v )   
+    { col.setData( dataArray( 4, v) ); }
+
+    void setColor( in col4[4] v )
+    { col.setData( dataArray(v) ); }
 }
