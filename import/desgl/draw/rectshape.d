@@ -22,14 +22,23 @@ debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
 class SimpleRect: GLObj!()
 {
     protected GLVBO pos;
+    protected irect last_rect;
     Signal!in_irect reshape;
+
+    nothrow @property irect rect() const { return last_rect; }
+
 
     this( int posloc )
     {
         pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
         setAttribPointer( pos, posloc, 2, GL_FLOAT );
 
-        reshape.connect( (r) { pos.setData( r.points!float ); } );
+        reshape.connect( (r) 
+        { 
+            last_rect = r; 
+            pos.setData( r.points!float ); 
+        });
+
         draw.connect( () { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
     }
 }
@@ -61,4 +70,16 @@ class ColorRect: SimpleRect
 
     void setColor( in col4[4] v )
     { col.setData( dataArray(v) ); }
+}
+
+class ColorTexRect: ColorRect
+{
+    protected GLVBO col, uv;
+    this( int posloc, int colloc, int uvloc )
+    {
+        super( posloc, colloc );
+        uv = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], 
+                        GL_ARRAY_BUFFER, GL_STATIC_DRAW );
+        setAttribPointer( uv, uvloc, 2, GL_FLOAT );
+    }
 }
