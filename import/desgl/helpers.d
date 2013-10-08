@@ -5,23 +5,26 @@ import derelict.opengl3.gl3;
 import desutil.logger;
 debug mixin( LoggerPrivateMixin( "glhelper", __MODULE__ ) );
 
-nothrow @property void checkGL( string md=__FILE__, int ln=__LINE__ )
+nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
 {
+    import std.string : format;
+    import std.stdio : stderr;
     auto err = glGetError();
     try 
     {
         if( err != GL_NO_ERROR )
         {
-            import std.stdio : stderr;
-            stderr.writefln( " ## GL ERROR ## %s at line: %s: 0x%04x", md, ln, err );
+            auto errstr = format( " ## GL ERROR ## %s at line: %s: 0x%04x", md, ln, err );
+            if( except ) throw new Exception( errstr );
+            else stderr.writefln( errstr );
         }
-        else
-        {
-            import std.string : format;
-            debug log.trace( format( "GL OK %s at line: %s", md, ln ) );
-        }
+        else debug log.trace( format( "GL OK %s at line: %s", md, ln ) );
     } 
-    catch( Exception e ){}
+    catch( Exception e )
+    {
+        try stderr.writeln( e );
+        catch( Exception ee ) {}
+    }
 }
 
 pure nothrow string toDString( const(char*) c_str )
@@ -97,7 +100,7 @@ public:
         update();
     }
 
-    uint sub( in irect vp )
+    irect sub( in irect vp )
     {
         auto cvp = current.viewport;
         auto csc = current.scissor;
@@ -108,12 +111,19 @@ public:
         nvp.w = vp.w;
         nvp.h = vp.h;
 
-        current.viewport = nvp;
-        current.scissor = csc.overlap( nvp );
+        irect nsc = csc.overlap( nvp );
 
+        irect locsc;
+        locsc.x = nsc.x - nvp.x;
+        locsc.y = nvp.y + nvp.h - nsc.y - nsc.h;
+        locsc.w = nsc.w;
+        locsc.h = nsc.h;
+
+        current.viewport = nvp;
+        current.scissor = nsc;
         update();
 
-        return current.scissor.area;
+        return locsc;
     }
 
     void set( in irect vp )
@@ -121,5 +131,11 @@ public:
         current.viewport = vp;
         current.scissor = vp;
         update();
+    }
+
+    void setClear( in irect vp )
+    {
+        states.length = 0;
+        set( vp );
     }
 }
