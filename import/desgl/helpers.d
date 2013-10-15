@@ -3,6 +3,7 @@ module desgl.helpers;
 import derelict.opengl3.gl3;
 
 import desutil.logger;
+import desutil.helpers;
 debug mixin( LoggerPrivateMixin( "glhelper", __MODULE__ ) );
 
 nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
@@ -25,21 +26,6 @@ nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
         try stderr.writeln( e );
         catch( Exception ee ) {}
     }
-}
-
-pure nothrow string toDString( const(char*) c_str )
-{
-    string buf;
-    char *ch = cast(char*)c_str;
-    while( *ch != '\0' ) buf ~= *(ch++);
-    return buf;
-}
-
-pure nothrow string toDStringFix(size_t S)( const(char[S]) c_buf )
-{
-    string buf;
-    foreach( c; c_buf ) buf ~= c;
-    return buf;
 }
 
 import desmath.types.vector;
