@@ -19,29 +19,17 @@ private @property string accessVecFields(T,string name)()
 class GLTexture(ubyte DIM)
     if( DIM == 1 || DIM == 2 || DIM == 3 )
 {
-private:
-    static uint currentUseID = 0;
-    static void set_to_use( uint ntex )
-    {
-        glBindTexture( type, ntex );
-        currentUseID = ntex;
-    }
-
-    uint texID;
 
     import std.string : format;
 
-protected:
-    texsize sz;
-
-public:
+    private uint texID;
+    protected texsize sz;
 
     mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
     alias vec!(DIM,int,"whd"[0 .. DIM]) texsize; 
 
     this()
     {
-        glActiveTexture( GL_TEXTURE0 );
         glGenTextures( 1, &texID );
         bind(); scope(exit) unbind();
 
@@ -60,8 +48,8 @@ public:
         glTexParameteri( type, param, val ); 
     }
 
-    final void bind()   { if( currentUseID != texID ) set_to_use( texID ); }
-    final void unbind() { if( currentUseID == texID ) set_to_use( 0 ); }
+    final nothrow void bind()   { glBindTexture( type, texID ); }
+    static nothrow void unbind() { glBindTexture( type, 0 ); }
 
     final @property texsize size() const { return sz; }
 
@@ -77,7 +65,6 @@ public:
     ~this()
     {
         unbind();
-        // TODO: WTF? segmentation failed
         glDeleteTextures( 1, &texID );
     }
 }
