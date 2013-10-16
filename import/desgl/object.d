@@ -23,7 +23,7 @@ public:
     {
         glGenBuffers( 1, &vboID );
         type = Type;
-        if( data_arr !is null ) setData( data_arr, mem );
+        if( data_arr !is null && data_arr.length ) setData( data_arr, mem );
 
         debug checkGL;
     }
