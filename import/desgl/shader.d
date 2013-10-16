@@ -9,7 +9,7 @@ import std.string : format;
 import derelict.opengl3.gl3;
 
 import desutil.logger;
-debug mixin( LoggerPrivateMixin( "glshader", __MODULE__ ) );
+mixin PrivateLogger;
 
 import desgl.helpers;
 
@@ -78,7 +78,7 @@ private:
     static GLuint makeShader( GLenum type, string src )
     {
         GLuint shader = glCreateShader( type );
-        debug log.info( "create shader ", shader, " with type ", type ); 
+        debug log_info( "create shader %s with type %s", shader, type ); 
         auto srcptr = src.ptr;
         glShaderSource( shader, 1, &(srcptr), null );
         glCompileShader( shader );

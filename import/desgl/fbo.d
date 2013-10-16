@@ -10,7 +10,7 @@ public import desgl.shader;
 import desgl.object;
 
 import desutil.logger;
-debug mixin( LoggerPrivateMixin( "glfbo", __MODULE__ ) );
+mixin PrivateLogger;
 
 class GLFBOException : Exception { this( string msg ){ super( msg ); } }
 
@@ -67,14 +67,13 @@ public:
 
         glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
-        debug import std.string;
-        debug log( format("create FBO [fbo:%d], [rbo:%d], [tex:%d]", fboID, rboID, texID ) );
+        debug log( "create FBO [fbo:%d], [rbo:%d], [tex:%d]", fboID, rboID, texID );
 
         resize.connect( (nsz)
         {
             sz = nsz;
 
-            debug log( "reshape FBO: [", sz.w, " ", sz.h, "]" );
+            debug log( "reshape FBO: [ %d x %d ]", sz.w, sz.h );
 
             glBindTexture( GL_TEXTURE_2D, texID );
             glTexImage2D( GL_TEXTURE_2D, 0, 4, sz.w, sz.h, 0, GL_RGBA, 

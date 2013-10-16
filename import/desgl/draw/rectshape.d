@@ -17,7 +17,7 @@ alias vrect!int irect;
 alias const ref irect in_irect;
 
 import desutil.logger;
-debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
+mixin PrivateLogger;
 
 class SimpleRect: GLObj!()
 {

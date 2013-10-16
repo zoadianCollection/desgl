@@ -4,7 +4,7 @@ import derelict.opengl3.gl3;
 
 import desutil.logger;
 import desutil.helpers;
-debug mixin( LoggerPrivateMixin( "glhelper", __MODULE__ ) );
+mixin PrivateLogger;
 
 nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
 {
@@ -19,7 +19,7 @@ nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
             if( except ) throw new Exception( errstr );
             else stderr.writefln( errstr );
         }
-        else debug log.trace( format( "GL OK %s at line: %s", md, ln ) );
+        else{ log( "GL OK %s at line: %s", md, ln ); }
     } 
     catch( Exception e )
     {

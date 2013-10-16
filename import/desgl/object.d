@@ -7,7 +7,7 @@ import desutil.signal;
 import desgl.helpers;
 
 import desutil.logger;
-debug mixin( LoggerPrivateMixin( "globj", __MODULE__ ) );
+mixin PrivateLogger;
 
 class GLObjException : Exception { this( string msg ){ super( msg ); } }
 
@@ -47,7 +47,7 @@ public:
             glBindBuffer( type, 0 );
 
             debug checkGL;
-            debug log.trace( "vbo data: ", data_arr );
+            debug log( "vbo data: %s", data_arr );
         }
     }
 
@@ -69,7 +69,7 @@ public:
         void bind() 
         { 
             glBindVertexArray( vaoID ); 
-            debug log.trace( "bind: ", vaoID );
+            debug log( "bind:  %d", vaoID );
             debug checkGL;
         }
 
@@ -77,7 +77,7 @@ public:
         { 
             bind();
             glEnableVertexAttribArray( n ); 
-            debug log.info( "enable attrib ", n, " for vao ", vaoID );
+            debug log_info( "enable attrib %d for vao %d", n, vaoID );
             debug checkGL;
         }
 
@@ -85,7 +85,7 @@ public:
         { 
             bind();
             glDisableVertexAttribArray( n ); 
-            debug log.info( "disable attrib ", n, " for vao ", vaoID );
+            debug log_info( "disable attrib %d for vao %d", n, vaoID );
             debug checkGL;
         }
     }
