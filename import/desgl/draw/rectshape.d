@@ -17,7 +17,7 @@ alias vrect!int irect;
 alias const ref irect in_irect;
 
 import desutil.logger;
-mixin PrivateLogger;
+mixin( PrivateLoggerMixin );
 
 class SimpleRect: GLObj!()
 {

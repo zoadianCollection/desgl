@@ -10,7 +10,7 @@ public import desgl.shader;
 import desgl.object;
 
 import desutil.logger;
-mixin PrivateLogger;
+mixin( PrivateLoggerMixin );
 
 class GLFBOException : Exception { this( string msg ){ super( msg ); } }
 

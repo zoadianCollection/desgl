@@ -4,7 +4,7 @@ import derelict.opengl3.gl3;
 
 import desutil.logger;
 import desutil.helpers;
-mixin PrivateLogger;
+mixin( PrivateLoggerMixin );
 
 nothrow void checkGL( bool except=false, string md=__FILE__, int ln=__LINE__ )
 {

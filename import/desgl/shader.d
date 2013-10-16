@@ -9,7 +9,7 @@ import std.string : format;
 import derelict.opengl3.gl3;
 
 import desutil.logger;
-mixin PrivateLogger;
+mixin( PrivateLoggerMixin );
 
 import desgl.helpers;
 

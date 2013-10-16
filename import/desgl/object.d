@@ -7,7 +7,7 @@ import desutil.signal;
 import desgl.helpers;
 
 import desutil.logger;
-mixin PrivateLogger;
+mixin( PrivateLoggerMixin );
 
 class GLObjException : Exception { this( string msg ){ super( msg ); } }
 
