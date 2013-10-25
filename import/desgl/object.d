@@ -47,7 +47,7 @@ public:
             glBindBuffer( type, 0 );
 
             debug checkGL;
-            debug log( "vbo data: %s", data_arr );
+            debug log( "vbo setData (%d byte)", size );
         }
     }
 
