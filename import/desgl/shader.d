@@ -57,9 +57,9 @@ import desgl.helpers;
 
 unittest
 {
-    assert( glPostfix!float == "f"  );
-    assert( glPostfix!int   == "i"  );
-    assert( glPostfix!uint  == "ui" );
+    assert( glPostfix!float  == "f" );
+    assert( glPostfix!int    == "i" );
+    assert( glPostfix!uint   == "ui");
     assert( glPostfix!double == ""  );
 }
 
