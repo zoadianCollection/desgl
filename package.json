@@ -6,10 +6,5 @@
 	"license": "MIT",
 	"targetType": "sourceLibrary",
 	"importPaths": [ "import" ],
-	"sourcePaths": [ "import" ],
-	"dependencies": {
-	        "desutil": "~master",
-	        "desmath": "~master",
-	        "derelict": "~master"
-	}
+	"sourcePaths": [ "import" ]
 }
