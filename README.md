@@ -3,6 +3,7 @@
 some OpenGL essential wraps:
 * VAO
 * VBO
+* FBO
 * shader
 * texture
 
