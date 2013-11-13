@@ -1,8 +1,11 @@
 {
 	"name": "desgl",
-    "targetType": "sourceLibrary",
-    "importPaths": [ "import" ],
-    "sourcePaths": [ "import" ],
+ 	"description": "D Extended Set GL",
+	"authors": ["Oleg Butko(deviator)", "Anton Akzhigitov(Akzwar)"],
+	"license": "MIT",
+	"targetType": "sourceLibrary",
+	"importPaths": [ "import" ],
+	"sourcePaths": [ "import" ],
 	"dependencies": {
         "desutil": "~master",
         "desmath": "~master",
