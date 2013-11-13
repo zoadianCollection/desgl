@@ -1,134 +1,89 @@
-## object.d
+### object.d
 
+#### `class GLVBO`
 
-### GLObj
+Класс-обёртка для OpenGL Vertex Buffer Object
 
-Обёртка для работы с vertex array object и vertex buffer object.
-
-`GLObj` параметризуется списком типов `Args...`. 
-От списка типов зависит только сигнатура делегатов, соединяемых с сигналом `draw`.
-
-Для использования нужно наследовать от `GLObj` свой класс.
-
-#### `final class buffer`
-
-Вложенный в `GLObj` класс, является обёрткой для vertex buffer object.
-
-##### методы
-
-* конструктор 
+* отвязать буфер определённого типа
 
     ```d
-    this(E)( string name, GLenum tp, in E[] data_arr, GLenum mem );
+    static nothrow void unbind( GLenum tp );
     ```
 
-    `name` - имя буфера, используется для заполнения ассоциативного массива в `GLObj`
+* конструктор принимает массив данных, тип буфера и тип памяти для нового буфера
 
-    `tp` - тип буфера, по умолчанию `GL_ARRAY_BUFFER`
+    ```d
+    this(E)( in E[] data_arr=null, GLenum Type=GL_ARRAY_BUFFER, GLenum mem=GL_DYNAMIC_DRAW );
+    ```
 
-    `data_arr` - массив данных, записываемый в буфер, по умолчанию `null`
+* финальные методы связывания, отвязывания
 
-    `mem` - тип памяти под данные буфера, по умолчанию `GL_DYNAMIC_DRAW`
+    ```d
+    final nothrow void bind();
+    final nothrow void unbind();
+    ```
 
-    В случае, если `data_arr != null` происходит заполнение буфера данными
-
-* установить как текущий (привязать)
+* возвращение номера буфера
     
     ```d
-    void bind();
+    final nothrow @property uint id() const;
     ```
-
-* отвязать
-
-    ```d
-    void unbind();
-    ```
-
-* заполнить буфер данными
-
-    ```d
-    void setData(E)( in E[] data_arr, GLenum mem );
-    ```
-
-    `data_arr` - массив данных
-
-    `mem` - тип памяти, по умолчанию `GL_DYNAMIC_DRAW`
-
-* задействовать атрибуты (`glEnableVertexAttribArray`)
-
-    ```d
-    void enable();
-    ```
-
-* дезактивация атрибутов (`glDisableVertexAttribArray`)
-
-    ```d
-    void disable();
-    ```
-
-* выставление атрибутов 
-
-    ```d
-    void setAttribPointer( string attrname, uint size, GLenum attype, bool norm );
-    void setAttribPointer( string attrname, uint size, GLenum attype, size_t stride, size_t offset, bool norm );
-    ```
-
-    `attrname` - имя атрибута в шейдере
-
-    `size` - количество данных в одном элементе (количество компонент вектора например)
-
-    `attype` - тип данных компонент элемента ( `GL_FLOAT`, `GL_UNSIGNED_BYTE`, etc )
-
-    `norm` - нормализация данных, по умолчанию `false`
-
-    `stride` - размер блока данных в байтах
-
-    `offset` - смещение начала данных элемента от начала блока данных
-
-    В случае вызова первой функции `stride` и `offset` становятся равными нулю, и
-    такие данные интерпретируются как непрерывные, то есть блоки имеют размер 
-    элементов и идут в данных буфера без разрыва
-
-##### Protected поля и методы `GLObj` #####
-
-* `buffer[string] vbo` - ассоциативный массив буферов
-
-* `ShaderProgram shader` - шейдер, используемый при рисовании
-
-* привязка и отвязка VAO
-    ```d
-    void bind();
-    void unbind();
-    ```
-
-##### Public поля и методы `GLObj` #####
     
-* `SignalBox!Args draw` - сигнал, вызываемый при отрисовке.
-    В наследуемых классах должен быть заполнен делегатом отрисовки
-
-* конструктор
+* выставление данных
     
     ```d
-    this( ShaderProgram sh );
+    final void setData(E)( in E[] data_arr, GLenum mem=GL_DYNAMIC_DRAW );
     ```
 
-    передаётся шейдер, используемый для отрисовки объекта
+#### `final class GLVAO`
 
+Класс-обёртка для OpenGL Vertex Array Object
 
-### Пример использования ###
+* отвязать буфер
+    
+    ```d
+    static nothrow void unbind();
+    ```
 
-**см. файл [reshape.d](https://github.com/dexset/desgl/blob/master/import/desgl/draw/rectshape.d)**
+* конструктор не принимает аргументов
 
+* связать буфер
+    
+    ```d
+    nothrow void bind();
+    ```
 
+* выставить определённый атрибут активным
+    
+    ```d
+    nothrow void enable( int n );
+    ```
+* выставить определённый атрибут пассивным
 
+    ```d
+    nothrow void disable( int n );
+    ```
 
+#### `class GLObj(Args...)`
 
+Класс объеденяет концепции VBO и VAO
 
+##### Protected поля и методы
 
+* `GLVAO vao;`
 
+* выставить указатель атрибута
+    
+    ```d
+    final nothrow void setAttribPointer( GLVBO buffer, int index, uint size, GLenum attype, bool norm=false );
 
+    final nothrow void setAttribPointer( GLVBO buffer, int index, uint size, 
+            GLenum attype, size_t stride, size_t offset, bool norm=false );
+    ```
 
+##### Public поля и методы
 
+* сигнал отрисовки `SignalBox!Args draw;`
 
-
+* конструктор без параметров
 

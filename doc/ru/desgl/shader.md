@@ -1,73 +1,65 @@
-## shader.d
+### shader.d ###
 
-#### ShaderSource
+#### `struct ShaderSource`
 
-Простая структура для хранения исходных кодов шейдера.
+структура содержит 3 поля
+```d
+string vert, frag, geom;
+```
+отвечающие соответственно за хранение исходников для вершинного, фрагментного и геометрического
+шейдеров.
 
-Содержит 3 поля типа `string` : `vert`, `geom`, `frag` ( вершинный, геометрии,
-фрагментный соответственно ).
+#### `class ShaderProgram`
+Класс-обёртка для OpenGL шейдеров
 
+* Конструктор принимает структуру `ShaderSource`
 
-#### ShaderProgram
-
-Класс для работы с шейдером OpenGL.
-
-##### методы
-
-* конструктор принимает исходники шейдера
-    
     ```d
     this( in ShaderSource src );
     ```
 
-* использовать
-    
-    ```d
-    final void use();
-    ```
+* использовать шейдер ( аналог `glUseProgram` )
 
-* получить адресс атрибута
+    ```d
+    final nothrow void use();
+    ```
+* получить адрес атрибута в шейдере по имени
 
     ```d
     int getAttribLocation( string name );
     ```
-
-* получить адресс uniform поля
+* получить адрес однородной переменной в шейдере по имени
 
     ```d
     int getUniformLocation( string name );
     ```
 
-* выставить значение uniform поля
+* выставить значение однородной переменной по адресу и по имени соответственно
 
     ```d
     void setUniform(S,T...)( int loc, T vals );
-    void setUniform(S,T...)( string name, T vals );
+    void setUniform(S,T...)( string name, T vals ); 
+    ```
 
+* выставить значение однородного массива по адресу и имени соответственно
+
+    ```d
     void setUniformArr(size_t sz,T)( int loc, in T[] vals );
     void setUniformArr(size_t sz,T)( string name, in T[] vals );
+    ```
 
+* выставить значение однородного массива по адресу и имени соответственно,
+    используя тип данных `vec`
+
+    ```d
     void setUniformVec(size_t N,T,string AS)( int loc, vec!(N,T,AS)[] vals... );
     void setUniformVec(size_t N,T,string AS)( string name, vec!(N,T,AS)[] vals... );
+    ```
+    
+* выставить значение однородного массива по адресу и имени соответственно,
+    используя тип данных `mat`
 
+    ```d
     void setUniformMat(size_t h, size_t w)( int loc, in mat!(h,w,float)[] mtr... );
     void setUniformMat(size_t h, size_t w)( string name, in mat!(h,w,float)[] mtr... );
     ```
-
-    Каждая пара функций принимает либо имя атрибута, либо сразу его адрес.
-
-    Первые 2 функции принимаю от 1 до 4 аргументов `vals`, тип данных `S` должен
-    быть одним из 3 допустимых типов: `float`, `int`, `uint`.
-
-    Вторые 2 функции принимают массив типа `T`. Тип `T` тоже должен быть одним
-    из 3 доступных типов: `float`, `int`, `uint`.
-
-    Последние 2е пары функций работают с
-    [векторами](https://github.com/dexset/desmath/blob/master/doc/ru/desmath/types/vector.md) 
-    и 
-    [матрицами](https://github.com/dexset/desmath/blob/master/doc/ru/desmath/types/matrix.md) 
-    из набора [desmath](https://github.com/dexset/desmath). При этом принимаются
-    массивы этих типов. Вектора могут содедержать 1 из 3х допустимых типов
-    данных, и должны быть размерностью от 2х до 4х. Матрцы могут быть только `float`, 
-    размерностью также от 2х до 4х по каждому измерению. 
-    
