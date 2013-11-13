@@ -1,6 +1,27 @@
-/++
-прямоугольник, удобен для наложения текстур
+/+
+The MIT License (MIT)
+
+    Copyright (c) <2013> <Oleg Butko (deviator), Anton Akzhigitov (Akzwar)>
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
 +/
+
 module desgl.draw.rectshape;
 
 import derelict.opengl3.gl3;
@@ -9,62 +30,77 @@ import desmath.types.vector,
        desmath.types.rect;
 
 import desgl.object;
-import desgl.texture;
+import desgl.helpers;
+
+import desutil.signal;
 
 alias vrect!int irect;
+alias const ref irect in_irect;
 
 import desutil.logger;
-debug mixin( LoggerPrivateMixin( "rshape", __MODULE__ ) );
+mixin( PrivateLoggerMixin );
 
-import desgl.draw.shape;
-
-class RectShape: Shape
+class SimpleRect: GLObj!()
 {
-protected:
-    static float[] colArray( in col4 c )
-    { return c.data ~ c.data ~ c.data ~ c.data; }
+    protected GLVBO pos;
+    protected irect last_rect;
+    Signal!in_irect reshape;
 
-    static float[] colArray( in col4[4] c )
-    { return c[0].data ~ c[1].data ~ c[2].data ~ c[3].data; }
+    nothrow @property irect rect() const { return last_rect; }
 
-    GLTexture2D tex;
-    int use_tex = 0;
 
-public:
-
-    this( ShaderProgram sp )
+    this( int posloc )
     {
-        debug log.trace( "rhape ctor start" );
+        pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
+        setAttribPointer( pos, posloc, 2, GL_FLOAT );
 
-        super( sp );
+        reshape.connect( (r) 
+        { 
+            last_rect = r; 
+            pos.setData( r.points!float ); 
+        });
 
-        debug log.trace( "rhape base class ctor" );
+        draw.connect( () { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
+    }
+}
 
-        auto pos = new buffer( "pos", GL_ARRAY_BUFFER, 
-                [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
-        pos.setAttribPointer( "vertex", 2, GL_FLOAT );
+class TexturedRect: SimpleRect
+{
+    protected GLVBO uv;
+    this( int posloc, int uvloc ) 
+    { 
+        super( posloc );
+        uv = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], 
+                        GL_ARRAY_BUFFER, GL_STATIC_DRAW );
+        setAttribPointer( uv, uvloc, 2, GL_FLOAT );
+    }
+}
 
-        debug log.trace( "pos vbo" );
-
-        auto uv = this.new buffer( "uv", GL_ARRAY_BUFFER, 
-                [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], GL_STATIC_DRAW );
-        uv.setAttribPointer( "uv", 2, GL_FLOAT );
-
-        debug log.trace( "uv vbo" );
-
-        auto col = this.new buffer( "col", GL_ARRAY_BUFFER, 
-                colArray( col4( 1,1,1,1 ) ) ); 
-        col.setAttribPointer( "color", 4, GL_FLOAT );
-
-        debug log.trace( "col vbo: ", colArray( col4(1,1,1,1) ) );
-
-        debug log.trace( "tex ctor" );
-
-        draw.connect( (){ glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
-
-        debug log.info( "rhape ctor finish" );
+class ColorRect: SimpleRect
+{
+    protected GLVBO col;
+    this( int posloc, int colloc )
+    {
+        super( posloc );
+        col = new GLVBO( dataArray( 4, col4(1,1,1,1) ) );
+        setAttribPointer( col, colloc, 4, GL_FLOAT );
     }
 
-    override void setColor( in col4 c ){ vbo["col"].setData( colArray( c ) ); }
-    override void reshape( in irect r ) { vbo["pos"].setData( r.points!float ); }
+    void setColor( in col4 v )   
+    { col.setData( dataArray( 4, v) ); }
+
+    void setColor( in col4[4] v )
+    { col.setData( dataArray(v) ); }
+}
+
+class ColorTexRect: ColorRect
+{
+    protected GLVBO col, uv;
+    this( int posloc, int colloc, int uvloc )
+    {
+        super( posloc, colloc );
+        uv = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ], 
+                        GL_ARRAY_BUFFER, GL_STATIC_DRAW );
+        setAttribPointer( uv, uvloc, 2, GL_FLOAT );
+    }
 }

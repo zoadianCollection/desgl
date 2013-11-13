@@ -1,6 +1,32 @@
+/+
+The MIT License (MIT)
+
+    Copyright (c) <2013> <Oleg Butko (deviator), Anton Akzhigitov (Akzwar)>
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
++/
+
 module desgl.texture;
 
-import derelict.opengl3.gl3;
+public import derelict.opengl3.gl3;
+
+import desgl.helpers;
 
 import desmath.types.vector;
 
@@ -19,36 +45,27 @@ private @property string accessVecFields(T,string name)()
 class GLTexture(ubyte DIM)
     if( DIM == 1 || DIM == 2 || DIM == 3 )
 {
-private:
-    static uint currentUseID = 0;
-    static void set_to_use( uint ntex )
-    {
-        glBindTexture( type, ntex );
-        currentUseID = ntex;
-    }
-
-    uint texID;
-
     import std.string : format;
 
-protected:
-    texsize sz;
-
-public:
+    private uint texID;
+    protected texsize sz;
 
     mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
     alias vec!(DIM,int,"whd"[0 .. DIM]) texsize; 
 
     this()
     {
-        glActiveTexture( GL_TEXTURE0 );
         glGenTextures( 1, &texID );
+        debug checkGL;
         bind(); scope(exit) unbind();
+        debug checkGL;
 
         parameteri( GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
         parameteri( GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
         parameteri( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         parameteri( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+        debug checkGL;
     }
 
     /+ TODO
@@ -60,8 +77,8 @@ public:
         glTexParameteri( type, param, val ); 
     }
 
-    final void bind()   { if( currentUseID != texID ) set_to_use( texID ); }
-    final void unbind() { if( currentUseID == texID ) set_to_use( 0 ); }
+    final nothrow void bind()   { glBindTexture( type, texID ); }
+    static nothrow void unbind() { glBindTexture( type, 0 ); }
 
     final @property texsize size() const { return sz; }
 
@@ -72,13 +89,15 @@ public:
         bind();
         mixin( format( "glTexImage%1dD( type, 0, texfmt, %s, 0, datafmt, datatype, cast(void*)data );",
                     DIM, accessVecFields!(T,"sz") ) );
+        debug checkGL;
     }
 
     ~this()
     {
         unbind();
-        // TODO: WTF? segmentation failed
         glDeleteTextures( 1, &texID );
+
+        debug checkGL;
     }
 }
 
