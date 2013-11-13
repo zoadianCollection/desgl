@@ -6,9 +6,10 @@
 	"targetType": "sourceLibrary",
 	"importPaths": [ "import" ],
 	"sourcePaths": [ "import" ],
-	"dependencies": {
-        "desutil": "~master",
-        "desmath": "~master",
-        "derelict": "~master"
+	"dependencies": 
+	{
+	        "desutil": "~master",
+	        "desmath": "~master",
+	        "derelict": "~master"
 	}
 }
