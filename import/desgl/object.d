@@ -143,8 +143,7 @@ protected:
     }
 
 public:
-    SignalBox!Args draw_sig;
-    final void draw( Args args ){ draw_sig( args ); }
+    mixin PastSignal!( "draw", SignalBox!Args );
 
     this()
     {

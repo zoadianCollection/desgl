@@ -45,8 +45,7 @@ class SimpleRect(Args...): GLObj!Args
     protected GLVBO pos;
     protected irect last_rect;
 
-    Signal!in_irect reshape_sig;
-    final void reshape( in irect r ){ reshape_sig( r ); }
+    mixin PastSignal!( "reshape", Signal!in_irect );
 
     nothrow @property irect rect() const { return last_rect; }
 

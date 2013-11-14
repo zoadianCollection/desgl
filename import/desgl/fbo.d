@@ -141,9 +141,8 @@ class GLFBODraw(Args...)
     GLFBO fbo;
     TexturedRect obj;
 
-    SignalBox!Args render_sig, draw_sig;
-    final void render( Args args ){ render_sig( args ); }
-    final void draw( Args args ){ draw_sig( args ); }
+    mixin PastSignal!( "render", SignalBox!Args );
+    mixin PastSignal!( "draw", SignalBox!Args );
 
     this( int posloc, int uvloc )
     {
