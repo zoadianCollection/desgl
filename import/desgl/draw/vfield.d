@@ -40,7 +40,7 @@ class VField(Args...): GLObj!Args
     {
         pos = new GLVBO( [ 0.0f, 0.0f ], GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW );
         setAttribPointer( pos, posloc, 2, GL_FLOAT );
-        draw_sig.connect( (Args args){ glDrawArrays( GL_LINES, 0, cast(int)vcnt ); } );
+        draw.connect( (Args args){ glDrawArrays( GL_LINES, 0, cast(int)vcnt ); } );
     }
 
     struct ArrowInfo

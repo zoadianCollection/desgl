@@ -45,7 +45,7 @@ class SimpleRect(Args...): GLObj!Args
     protected GLVBO pos;
     protected irect last_rect;
 
-    mixin PastSignal!( "reshape", Signal!in_irect );
+    Signal!in_irect reshape;
 
     nothrow @property irect rect() const { return last_rect; }
 
@@ -54,13 +54,13 @@ class SimpleRect(Args...): GLObj!Args
         pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
         setAttribPointer( pos, posloc, 2, GL_FLOAT );
 
-        reshape_sig.connect( (r) 
+        reshape.connect( (r) 
         { 
             last_rect = r; 
             pos.setData( r.points!float ); 
         });
 
-        draw_sig.connect( ( Args args ) { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
+        draw.connect( ( Args args ) { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
     }
 }
 
