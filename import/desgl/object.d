@@ -143,14 +143,15 @@ protected:
     }
 
 public:
-    SignalBox!Args draw;
+    SignalBox!Args draw_sig;
+    final void draw( Args args ){ draw_sig( args ); }
 
     this()
     {
         vao = new GLVAO;
-        draw.addBegin( (Args args){ vao.bind(); } );
+        draw_sig.addBegin( (Args args){ vao.bind(); } );
 
-        debug draw.addBegin( (Args args){ checkGL; } ); 
+        debug draw_sig.addBegin( (Args args){ checkGL; } ); 
         debug checkGL;
     }
 }

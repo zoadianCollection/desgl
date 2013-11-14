@@ -31,7 +31,7 @@ public import desmath.types.special : posvec;
 
 import desgl.object;
 
-class VField: GLObj!()
+class VField(Args...): GLObj!Args
 {
     protected size_t vcnt=0;
     protected GLVBO pos;
@@ -40,7 +40,7 @@ class VField: GLObj!()
     {
         pos = new GLVBO( [ 0.0f, 0.0f ], GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW );
         setAttribPointer( pos, posloc, 2, GL_FLOAT );
-        draw.connect( (){ glDrawArrays( GL_LINES, 0, cast(int)vcnt ); } );
+        draw_sig.connect( (Args args){ glDrawArrays( GL_LINES, 0, cast(int)vcnt ); } );
     }
 
     struct ArrowInfo

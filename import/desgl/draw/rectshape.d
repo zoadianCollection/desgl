@@ -40,31 +40,32 @@ alias const ref irect in_irect;
 import desutil.logger;
 mixin( PrivateLoggerMixin );
 
-class SimpleRect: GLObj!()
+class SimpleRect(Args...): GLObj!Args
 {
     protected GLVBO pos;
     protected irect last_rect;
-    Signal!in_irect reshape;
+
+    Signal!in_irect reshape_sig;
+    final void reshape( in irect r ){ reshape_sig( r ); }
 
     nothrow @property irect rect() const { return last_rect; }
-
 
     this( int posloc )
     {
         pos = new GLVBO( [ 0.0f, 0, 1, 0, 0, 1, 1, 1 ] );
         setAttribPointer( pos, posloc, 2, GL_FLOAT );
 
-        reshape.connect( (r) 
+        reshape_sig.connect( (r) 
         { 
             last_rect = r; 
             pos.setData( r.points!float ); 
         });
 
-        draw.connect( () { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
+        draw_sig.connect( ( Args args ) { glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 ); } );
     }
 }
 
-class TexturedRect: SimpleRect
+class TexturedRect(Args...): SimpleRect!Args
 {
     protected GLVBO uv;
     this( int posloc, int uvloc ) 
@@ -76,7 +77,7 @@ class TexturedRect: SimpleRect
     }
 }
 
-class ColorRect: SimpleRect
+class ColorRect(Args...): SimpleRect!Args
 {
     protected GLVBO col;
     this( int posloc, int colloc )
@@ -86,14 +87,14 @@ class ColorRect: SimpleRect
         setAttribPointer( col, colloc, 4, GL_FLOAT );
     }
 
-    void setColor( in col4 v )   
+    void setColor( in col4 v )
     { col.setData( dataArray( 4, v) ); }
 
     void setColor( in col4[4] v )
     { col.setData( dataArray(v) ); }
 }
 
-class ColorTexRect: ColorRect
+class ColorTexRect(Args...): ColorRect!Args
 {
     protected GLVBO col, uv;
     this( int posloc, int colloc, int uvloc )
