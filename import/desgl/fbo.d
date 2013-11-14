@@ -50,11 +50,8 @@ private:
 public:
 
     alias const ref ivec2 in_ivec2;
-    Signal!in_ivec2 resize_sig;
-    final void resize( in ivec2 s ){ resize_sig( s ); }
-
-    SignalBoxNoArgs draw_sig;
-    final void draw(){ draw_sig(); }
+    Signal!in_ivec2 resize;
+    SignalBoxNoArgs draw;
 
     this()
     {
@@ -97,7 +94,7 @@ public:
 
         debug log( "create FBO [fbo:%d], [rbo:%d], [tex:%d]", fboID, rboID, texID );
 
-        resize_sig.connect( (nsz)
+        resize.connect( (nsz)
         {
             sz = nsz;
 
@@ -141,8 +138,7 @@ class GLFBODraw(Args...)
     GLFBO fbo;
     TexturedRect obj;
 
-    mixin PastSignal!( "render", SignalBox!Args );
-    mixin PastSignal!( "draw", SignalBox!Args );
+    SignalBox!Args render, draw;
 
     this( int posloc, int uvloc )
     {
@@ -150,10 +146,10 @@ class GLFBODraw(Args...)
 
         obj = new TexturedRect( posloc, uvloc );
 
-        render_sig.addBegin( (Args a) { fbo.bind(); } );
-        render_sig.addEnd( (Args a) { fbo.unbind(); } );
+        render.addBegin( (Args a) { fbo.bind(); } );
+        render.addEnd( (Args a) { fbo.unbind(); } );
 
-        draw_sig.addBegin( (Args a) { fbo.bindTexture(); });
-        draw_sig.connect( (Args a) { obj.draw(); } );
+        draw.addBegin( (Args a) { fbo.bindTexture(); });
+        draw.connect( (Args a) { obj.draw(); } );
     }
 }

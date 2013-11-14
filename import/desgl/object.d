@@ -143,14 +143,14 @@ protected:
     }
 
 public:
-    mixin PastSignal!( "draw", SignalBox!Args );
+    SignalBox!Args draw;
 
     this()
     {
         vao = new GLVAO;
-        draw_sig.addBegin( (Args args){ vao.bind(); } );
+        draw.addBegin( (Args args){ vao.bind(); } );
 
-        debug draw_sig.addBegin( (Args args){ checkGL; } ); 
+        debug draw.addBegin( (Args args){ checkGL; } ); 
         debug checkGL;
     }
 }
