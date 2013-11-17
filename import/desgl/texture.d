@@ -38,7 +38,7 @@ private @property string accessVecFields(T,string name)()
     import std.string : format;
     string ret;
     foreach( i; 0 .. T.length )
-        ret ~= format( "%s[%d],", name, i );
+        ret ~= format( "cast(int)(%s[%d]),", name, i );
     return ret[0 .. $-1];
 }
 
@@ -51,7 +51,7 @@ class GLTexture(ubyte DIM)
     protected texsize sz;
 
     mixin( format( "enum GLenum type = GL_TEXTURE_%1dD;", DIM ) );
-    alias vec!(DIM,int,"whd"[0 .. DIM]) texsize; 
+    alias vec!(DIM,long,"whd"[0 .. DIM]) texsize; 
 
     this()
     {
@@ -83,7 +83,7 @@ class GLTexture(ubyte DIM)
     final @property texsize size() const { return sz; }
 
     final void image(T,E)( in T nsz, int texfmt, GLenum datafmt, GLenum datatype, in E* data )
-        if( isCompVector!(DIM,int,T) )
+        if( isCompVector!(DIM,long,T) )
     {
         sz = nsz;
         bind();
