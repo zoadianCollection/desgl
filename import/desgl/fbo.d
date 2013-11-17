@@ -136,7 +136,7 @@ import desgl.draw.rectshape;
 class GLFBODraw(Args...)
 {
     GLFBO fbo;
-    TexturedRect obj;
+    TexturedRect!() obj;
 
     SignalBox!Args render, draw;
 
