@@ -144,7 +144,7 @@ class GLFBODraw(Args...)
     {
         fbo = new GLFBO;
 
-        obj = new TexturedRect( posloc, uvloc );
+        obj = new TexturedRect!()( posloc, uvloc );
 
         render.addBegin( (Args a) { fbo.bind(); } );
         render.addEnd( (Args a) { fbo.unbind(); } );
