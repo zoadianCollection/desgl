@@ -209,6 +209,14 @@ public:
         return ret;
     }
 
+    int[] getAttribLocations( string[] names... )
+    { 
+        int[] ret;
+        foreach( name; names )
+            ret ~= getAttribLocation( name );
+        return ret;
+    }
+
     int getUniformLocation( string name )
     { 
         auto ret = glGetUniformLocation( program, name.ptr ); 
