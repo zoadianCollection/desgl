@@ -32,11 +32,13 @@ import desutil.signal;
 
 public import desgl.shader;
 import desgl.object;
+import desgl.helpers;
 
 import desutil.logger;
 mixin( PrivateLoggerMixin );
 
-class GLFBOException : Exception { this( string msg ){ super( msg ); } }
+class GLFBOException : Exception 
+{ @safe pure nothrow this( string msg ){ super( msg ); } }
 
 class GLFBO
 {
@@ -44,6 +46,13 @@ private:
     uint texID;
     uint rboID;
     uint fboID;
+
+    static uint[] fboStack;
+
+    static this()
+    {
+        fboStack ~= 0;
+    }
 
     vec!(2,int,"wh") sz;
 
@@ -70,6 +79,7 @@ public:
                          GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
         glTexImage2D( GL_TEXTURE_2D, 0, 4, sz.w, sz.h, 0, GL_RGBA, 
                       GL_UNSIGNED_BYTE, null );
+        glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture( GL_TEXTURE_2D, 0 );
 
         // Render buffer
@@ -103,6 +113,7 @@ public:
             glBindTexture( GL_TEXTURE_2D, texID );
             glTexImage2D( GL_TEXTURE_2D, 0, 4, sz.w, sz.h, 0, GL_RGBA, 
                           GL_UNSIGNED_BYTE, null );
+            glGenerateMipmap(GL_TEXTURE_2D);
             glBindTexture( GL_TEXTURE_2D, 0 );
 
             glBindRenderbuffer( GL_RENDERBUFFER, rboID );
@@ -113,11 +124,96 @@ public:
         resize( ivec2(1,1) );
     }
 
-    final nothrow void bind() { glBindFramebuffer( GL_FRAMEBUFFER, fboID ); }
-    final nothrow void unbind() { glBindFramebuffer( GL_FRAMEBUFFER, 0 ); }
+    final nothrow void bind() 
+    { 
+        glBindFramebuffer( GL_FRAMEBUFFER, fboID ); 
+        fboStack ~= fboID;
+    }
+    final nothrow void unbind() 
+    { 
+        if( fboStack.length > 1 )
+        {
+            glBindFramebuffer( GL_FRAMEBUFFER, fboStack[$-2] ); 
+            fboStack = fboStack[ 0 .. $-1 ];
+        }
+
+        //glBindFramebuffer( GL_FRAMEBUFFER, 0 ); 
+    }
 
     final nothrow void bindTexture() { glBindTexture( GL_TEXTURE_2D, texID ); }
     final nothrow void unbindTexture() { glBindTexture( GL_TEXTURE_2D, 0 ); }
+
+    struct ImageData
+    {
+        ivec2 size;
+        ubyte[] data;
+    }
+
+    final ImageData getImage( uint level=0, GLenum fmt=GL_RGB, GLenum rtype=GL_UNSIGNED_BYTE )
+    {
+        bindTexture();
+        if( level ) glGenerateMipmap(GL_TEXTURE_2D);
+        debug checkGL;
+        ImageData img;
+        int w, h;
+        glGetTexLevelParameteriv( GL_TEXTURE_2D, level, GL_TEXTURE_WIDTH, &(w));
+        debug checkGL;
+        glGetTexLevelParameteriv( GL_TEXTURE_2D, level, GL_TEXTURE_HEIGHT, &(h));
+        img.size = ivec2( w, h );
+        debug checkGL;
+
+        import std.string;
+        size_t elemSize = 1;
+        switch(fmt)
+        {
+            case GL_RED:
+            case GL_GREEN: 
+            case GL_BLUE: 
+                break;
+            case GL_RG: 
+                elemSize *= 2;
+                break;
+            case GL_RGB: 
+            case GL_BGR: 
+                elemSize *= 3;
+                break;
+            case GL_RGBA: 
+            case GL_BGRA:
+                elemSize *= 4;
+                break;
+            default:
+                throw new GLFBOException( format( "FBO.getImage not support format %s", fmt ) );
+        }
+
+        switch(rtype)
+        {
+            case GL_UNSIGNED_BYTE: 
+            case GL_BYTE: 
+                break;
+            case GL_UNSIGNED_SHORT: 
+            case GL_SHORT: 
+                elemSize *= short.sizeof;
+                break;
+            case GL_UNSIGNED_INT:
+            case GL_INT: 
+                elemSize *= int.sizeof;
+                break;
+            case GL_FLOAT:
+                elemSize *= float.sizeof;
+                break;
+            default:
+                throw new GLFBOException( format( "FBO.getImage not support type %s", rtype ) );
+        }
+
+        img.data.length = img.size.x * img.size.y * elemSize;
+
+        glGetTexImage( GL_TEXTURE_2D, level, fmt, rtype, img.data.ptr );
+        debug checkGL;
+        unbindTexture();
+        debug checkGL;
+
+        return img;
+    }
 
     nothrow @property auto size() const { return sz; }
 
