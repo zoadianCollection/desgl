@@ -143,18 +143,17 @@ public:
     final nothrow void bindTexture() { glBindTexture( GL_TEXTURE_2D, texID ); }
     final nothrow void unbindTexture() { glBindTexture( GL_TEXTURE_2D, 0 ); }
 
-    struct ImageData
+    static struct ImageData
     {
         ivec2 size;
         ubyte[] data;
     }
 
-    final ImageData getImage( uint level=0, GLenum fmt=GL_RGB, GLenum rtype=GL_UNSIGNED_BYTE )
+    final void getImage( ref ImageData img, uint level=0, GLenum fmt=GL_RGB, GLenum rtype=GL_UNSIGNED_BYTE )
     {
         bindTexture();
         if( level ) glGenerateMipmap(GL_TEXTURE_2D);
         debug checkGL;
-        ImageData img;
         int w, h;
         glGetTexLevelParameteriv( GL_TEXTURE_2D, level, GL_TEXTURE_WIDTH, &(w));
         debug checkGL;
@@ -205,14 +204,14 @@ public:
                 throw new GLFBOException( format( "FBO.getImage not support type %s", rtype ) );
         }
 
-        img.data.length = img.size.x * img.size.y * elemSize;
+        auto dsize = img.size.x * img.size.y * elemSize;
+        if( img.data is null || img.data.length != dsize )
+            img.data.length = dsize;
 
         glGetTexImage( GL_TEXTURE_2D, level, fmt, rtype, img.data.ptr );
         debug checkGL;
         unbindTexture();
         debug checkGL;
-
-        return img;
     }
 
     nothrow @property auto size() const { return sz; }
