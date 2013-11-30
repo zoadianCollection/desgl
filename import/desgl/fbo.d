@@ -32,7 +32,10 @@ import desutil.signal;
 
 public import desgl.shader;
 import desgl.object;
+import desgl.texture;
 import desgl.helpers;
+
+import desil.image;
 
 import desutil.logger;
 mixin( PrivateLoggerMixin );
@@ -43,16 +46,14 @@ class GLFBOException : Exception
 class GLFBO
 {
 private:
-    uint texID;
     uint rboID;
     uint fboID;
 
+    GLTexture2D tex;
+
     static uint[] fboStack;
 
-    static this()
-    {
-        fboStack ~= 0;
-    }
+    static this() { fboStack ~= 0; }
 
     vec!(2,int,"wh") sz;
 
@@ -66,21 +67,7 @@ public:
     {
         sz = ivec2( 1, 1 );
 
-        // Texture 
-        glGenTextures( 1, &texID );
-        glBindTexture( GL_TEXTURE_2D, texID );
-        glTexParameterf( GL_TEXTURE_2D, 
-                         GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, 
-                         GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameterf( GL_TEXTURE_2D, 
-                         GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-        glTexParameterf( GL_TEXTURE_2D, 
-                         GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, sz.w, sz.h, 0, GL_RGBA, 
-                      GL_UNSIGNED_BYTE, null );
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture( GL_TEXTURE_2D, 0 );
+        tex = new GLTexture2D;
 
         // Render buffer
         glGenRenderbuffers( 1, &rboID );
@@ -92,7 +79,7 @@ public:
         glGenFramebuffers( 1, &fboID );
         glBindFramebuffer( GL_FRAMEBUFFER, fboID );
         glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                GL_TEXTURE_2D, texID, 0 );
+                                GL_TEXTURE_2D, tex.id, 0 );
         glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, 
                                    GL_RENDERBUFFER, rboID );
 
@@ -102,7 +89,7 @@ public:
 
         glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
-        debug log( "create FBO [fbo:%d], [rbo:%d], [tex:%d]", fboID, rboID, texID );
+        debug log( "create FBO [fbo:%d], [rbo:%d], [tex:%d]", fboID, rboID, tex.id );
 
         resize.connect( (nsz)
         {
@@ -110,11 +97,8 @@ public:
 
             debug log( "reshape FBO: [ %d x %d ]", sz.w, sz.h );
 
-            glBindTexture( GL_TEXTURE_2D, texID );
-            glTexImage2D( GL_TEXTURE_2D, 0, 4, sz.w, sz.h, 0, GL_RGBA, 
-                          GL_UNSIGNED_BYTE, null );
-            glGenerateMipmap(GL_TEXTURE_2D);
-            glBindTexture( GL_TEXTURE_2D, 0 );
+            tex.image( sz, 4, GL_RGBA, GL_UNSIGNED_BYTE );
+            tex.genMipmap();
 
             glBindRenderbuffer( GL_RENDERBUFFER, rboID );
             glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT, sz.w, sz.h );
@@ -129,6 +113,7 @@ public:
         glBindFramebuffer( GL_FRAMEBUFFER, fboID ); 
         fboStack ~= fboID;
     }
+
     final nothrow void unbind() 
     { 
         if( fboStack.length > 1 )
@@ -136,93 +121,26 @@ public:
             glBindFramebuffer( GL_FRAMEBUFFER, fboStack[$-2] ); 
             fboStack = fboStack[ 0 .. $-1 ];
         }
-
-        //glBindFramebuffer( GL_FRAMEBUFFER, 0 ); 
     }
 
-    final nothrow void bindTexture() { glBindTexture( GL_TEXTURE_2D, texID ); }
-    final nothrow void unbindTexture() { glBindTexture( GL_TEXTURE_2D, 0 ); }
+    /+ TODO 
+        работу с текстурой переложить на GLTexture2D
+       TODO +/
 
-    static struct ImageData
-    {
-        ivec2 size;
-        ubyte[] data;
-    }
+    final nothrow void bindTexture() { tex.bind(); }
+    final nothrow void unbindTexture() { tex.unbind(); }
 
-    final void getImage( ref ImageData img, uint level=0, GLenum fmt=GL_RGB, GLenum rtype=GL_UNSIGNED_BYTE )
-    {
-        bindTexture();
-        if( level ) glGenerateMipmap(GL_TEXTURE_2D);
-        debug checkGL;
-        int w, h;
-        glGetTexLevelParameteriv( GL_TEXTURE_2D, level, GL_TEXTURE_WIDTH, &(w));
-        debug checkGL;
-        glGetTexLevelParameteriv( GL_TEXTURE_2D, level, GL_TEXTURE_HEIGHT, &(h));
-        img.size = ivec2( w, h );
-        debug checkGL;
-
-        import std.string;
-        size_t elemSize = 1;
-        switch(fmt)
-        {
-            case GL_RED:
-            case GL_GREEN: 
-            case GL_BLUE: 
-                break;
-            case GL_RG: 
-                elemSize *= 2;
-                break;
-            case GL_RGB: 
-            case GL_BGR: 
-                elemSize *= 3;
-                break;
-            case GL_RGBA: 
-            case GL_BGRA:
-                elemSize *= 4;
-                break;
-            default:
-                throw new GLFBOException( format( "FBO.getImage not support format %s", fmt ) );
-        }
-
-        switch(rtype)
-        {
-            case GL_UNSIGNED_BYTE: 
-            case GL_BYTE: 
-                break;
-            case GL_UNSIGNED_SHORT: 
-            case GL_SHORT: 
-                elemSize *= short.sizeof;
-                break;
-            case GL_UNSIGNED_INT:
-            case GL_INT: 
-                elemSize *= int.sizeof;
-                break;
-            case GL_FLOAT:
-                elemSize *= float.sizeof;
-                break;
-            default:
-                throw new GLFBOException( format( "FBO.getImage not support type %s", rtype ) );
-        }
-
-        auto dsize = img.size.x * img.size.y * elemSize;
-        if( img.data is null || img.data.length != dsize )
-            img.data.length = dsize;
-
-        glGetTexImage( GL_TEXTURE_2D, level, fmt, rtype, img.data.ptr );
-        debug checkGL;
-        unbindTexture();
-        debug checkGL;
-    }
+    final void getImage( ref Image img, uint level=0, GLenum fmt=GL_RGB, GLenum rtype=GL_UNSIGNED_BYTE )
+    { tex.getImage( img, level, fmt, rtype ); }
 
     nothrow @property auto size() const { return sz; }
 
     ~this()
     {
         unbind();
-        unbindTexture();
         glDeleteFramebuffers( 1, &fboID );
         glDeleteRenderbuffers( 1, &rboID );
-        glDeleteTextures( 1, &texID );
+        clear(tex);
     }
 }
 
