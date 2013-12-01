@@ -68,6 +68,7 @@ public:
         sz = ivec2( 1, 1 );
 
         tex = new GLTexture2D;
+        tex.image( sz, 4, GL_RGBA, GL_UNSIGNED_BYTE );
 
         // Render buffer
         glGenRenderbuffers( 1, &rboID );
@@ -84,8 +85,9 @@ public:
                                    GL_RENDERBUFFER, rboID );
 
         GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
+        import std.string;
         if( status != GL_FRAMEBUFFER_COMPLETE )
-            throw new GLFBOException( "status isn't GL_FRAMEBUFFER_COMPLETE" );
+            throw new GLFBOException( format( "status isn't GL_FRAMEBUFFER_COMPLETE, it's %#x", status ) );
 
         glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
