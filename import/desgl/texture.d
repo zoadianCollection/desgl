@@ -29,7 +29,7 @@ public import derelict.opengl3.gl3;
 import desgl.helpers;
 
 import desmath.types.vector;
-import desil.image;
+import desil;
 
 class TextureException: Exception 
 { @safe pure nothrow this( string msg ){ super( msg ); } }
@@ -173,6 +173,12 @@ class GLTexture(ubyte DIM) if( DIM == 1 || DIM == 2 || DIM == 3 )
             }
             image( img.size, cast(int)img.type.channels, 
                    fmt, type, img.data.ptr );
+        }
+
+        final void image( in ImageReadAccess ira )
+        { 
+            if( ira !is null ) image( ira.selfImage() ); 
+            else image( ivec2(1,1), 3, GL_RGB, GL_UNSIGNED_BYTE );
         }
     }
 
